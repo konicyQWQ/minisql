@@ -94,8 +94,11 @@ typedef enum
 
 struct WhereQuery
 {
+    explicit WhereQuery(Data &d) : d(d)
+    {
+    }
     std::string col;
     COMPARE op;
-    Data d;//这里用了值传递，没有用指针
+    Data& d;//这里用了值传递，没有用指针
 };
 #endif //MINISQL_TYPEDEF_H
