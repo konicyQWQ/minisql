@@ -1,7 +1,3 @@
-//
-// Created by sky on 2020/6/3.
-//
-
 #ifndef MINISQL_TYPEDEF_H
 #define MINISQL_TYPEDEF_H
 
@@ -12,7 +8,7 @@
 class Data
 {
 public:
-    short type;//0:int;1:float;otherwise vchar
+    int type;//0:int;1:float;otherwise vchar
 };
 
 class iData : public Data
@@ -44,7 +40,7 @@ public:
 
     explicit sData(std::string x) : Data(), value(std::move(x))
     {
-        type = x.size();
+        type = x.size() + 2;//为了防止和0 1冲突
     }
 };
 
@@ -95,11 +91,11 @@ typedef enum
 {
     e, ne, gt, lt, ge, le
 } COMPARE;
+
 struct WhereQuery
 {
     std::string col;
     COMPARE op;
-    byte type;
-    std::string value;//这里我们把一切
+    Data d;//这里用了值传递，没有用指针
 };
 #endif //MINISQL_TYPEDEF_H
