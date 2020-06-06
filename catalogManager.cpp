@@ -4,8 +4,8 @@
 #include <iostream>
 
 CatalogManager::CatalogManager() {
-    FILE* tableFile = fopen("tbf.inf", "r");
-    FILE* indexFile = fopen("idx.inf", "r");
+    FILE* tableFile = fopen("table/tbf.inf", "r");
+    FILE* indexFile = fopen("table/idx.inf", "r");
     char str[64], str2[64];
 
     // 所有表名装载进内存
@@ -20,8 +20,8 @@ CatalogManager::CatalogManager() {
 }
 
 CatalogManager::~CatalogManager() {
-    FILE* tableFile = fopen("tbf.inf", "w");
-    FILE* indexFile = fopen("idx.inf", "w");
+    FILE* tableFile = fopen("table/tbf.inf", "w");
+    FILE* indexFile = fopen("table/idx.inf", "w");
 
     // 所有表名重新写入文件
     for(auto it=allTable.begin(); it!=allTable.end(); ++it)
@@ -39,7 +39,7 @@ int CatalogManager::createTable(Table &table) {
         return 1;   // 已经存在相同的表名了！
     
     // 正常处理
-    FILE* file = fopen((table.name + ".tbf").c_str(), "wb");
+    FILE* file = fopen((std::string("table/") + table.name + ".tbf").c_str(), "wb");
     char buf[5284], *p = buf;
     // 填充头部
     p[0] = table.attrCnt;
@@ -74,7 +74,7 @@ int CatalogManager::createTable(Table &table) {
 }
 
 int CatalogManager::dropTable(std::string tableName) {
-    if(remove((tableName + ".tbf").c_str()) < 0)
+    if(remove((std::string("table/") + tableName + ".tbf").c_str()) < 0)
         return 1;   // 删除失败，表不存在
     
     allTable.erase(tableName);
@@ -90,7 +90,7 @@ int CatalogManager::createIndex(std::string tableName, std::string indexName, by
     if(allIndex.count(indexName) == 1)
         return 2;   // 索引名重复
     
-    FILE *file = fopen((tableName + ".tbf").c_str(), "r+");
+    FILE *file = fopen((std::string("table/") + tableName + ".tbf").c_str(), "r+");
     char buf[81];
     // 索引数量+1
     fseek(file, 1L, SEEK_SET);
@@ -114,7 +114,7 @@ int CatalogManager::dropIndex(std::string indexName) {
     if(allIndex.count(indexName) == 0)
         return 1;
     
-    FILE *file = fopen((allIndex[indexName] + ".tbf").c_str(), "r");
+    FILE *file = fopen((std::string("table/") + allIndex[indexName] + ".tbf").c_str(), "r");
     char buf[5284], *p = buf, *last;
 
     last = buf + fread(buf, sizeof(char), 5284, file);
@@ -129,7 +129,7 @@ int CatalogManager::dropIndex(std::string indexName) {
     buf[1]--;
     
     // 重新写入文件
-    file = fopen((allIndex[indexName] + ".tbf").c_str(), "w");
+    file = fopen((std::string("table/") + allIndex[indexName] + ".tbf").c_str(), "w");
     fwrite(buf, sizeof(char), last - buf - 81, file);
     fclose(file);
     allIndex.erase(indexName);
@@ -141,7 +141,7 @@ Table* CatalogManager::selectTable(std::string tableName) {
         return nullptr;   // 表不存在
 
     // 正常处理
-    FILE *file = fopen((tableName + ".tbf").c_str(), "rb");
+    FILE *file = fopen((std::string("table/") + tableName + ".tbf").c_str(), "rb");
     Table *tb = new Table;
     char buf[5284], *p = buf;
 

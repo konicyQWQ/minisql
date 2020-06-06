@@ -5,6 +5,16 @@
 #include <utility>
 #include <vector>
 
+typedef unsigned char byte;
+
+/* 缓冲区块的定义 */
+struct Block {
+    char buf[4096];
+    std::string filename;
+    int time, offset;
+    bool writeMark, pin;
+};
+
 class Data
 {
 public:
@@ -44,7 +54,6 @@ public:
     }
 };
 
-
 class Tuple
 {
 private:
@@ -56,7 +65,6 @@ public:
     }
 };
 
-typedef unsigned char byte;
 
 /* 属性 */
 struct Attribute
@@ -94,8 +102,11 @@ typedef enum
 
 struct WhereQuery
 {
+    explicit WhereQuery(Data &d) : d(d)
+    {
+    }
     std::string col;
     COMPARE op;
-    Data d;//这里用了值传递，没有用指针
+    Data& d;//这里用了值传递，没有用指针
 };
 #endif //MINISQL_TYPEDEF_H
