@@ -40,3 +40,23 @@ byte     byte    byte
 + insert：
 + delete：
 + select：
+
+## buffer manager
+
+`Block* getBlock(std::string filename, int offset);`
+
+这个是返回 filename 这个文件的第 offset 块的指针，offset取值是0，1，2，3...，filename对应的这个必须存在。`Block->buf[x]`就是对应缓冲区块的第 x 个字节，一块是 4096 个字节。当 offset=0 时，这个 buf 就是文件第 0~4095字节，后面同理。
+
+blk->validChar 是一个 int 类型变量，表示这4096个字节里面，有多少个是有效的字节（也就是说，如果文件只有4096个字节，用offset=1读取一个本没有的块的时候，这个值就是0）
+
+`void writeBlock(Block* blk);`
+
+当你要对这块缓冲区进行写操作的时候，需要用这个函数标记一下。
+
+`void pinBlock(Block *blk);`
+
+当你不希望这块缓冲区被后面的缓冲区顶掉的时候，可以用这个函数锁住它。
+
+`void removeBlock(Block* blk);`
+
+强制将 blk 这块缓冲区写回文件。不管他有没有被锁住。

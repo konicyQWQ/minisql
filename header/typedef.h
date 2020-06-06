@@ -11,7 +11,7 @@ typedef unsigned char byte;
 struct Block {
     char buf[4096];
     std::string filename;
-    int time, offset;
+    int time, offset, validChar;
     bool writeMark, pin;
 };
 

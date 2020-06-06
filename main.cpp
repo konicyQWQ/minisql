@@ -1,14 +1,14 @@
 #include <iostream>
 #include "Interpreter.h"
-#include "CatalogManager.h"
+#include "catalogManager.h"
 #include "bufferManager.h"
 #include "recordManager.h"
+#include "header/typedef.h"
 
 using namespace std;
 
 int main()
 {
-
     cout << "Welcome to MiniSQL" << endl;
 
     Interpreter i;

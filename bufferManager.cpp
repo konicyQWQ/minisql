@@ -2,12 +2,19 @@
 #include "bufferManager.h"
 
 #include <cstring>
+#include <iostream>
 
 BufferManager::BufferManager() {
-    memset(buf, 0x00, sizeof(buf));
     time = 0;
-    for(int i=0; i<Buffer_Number; i++)
+    for(int i=0; i<Buffer_Number; i++) {
+        memset(buf[i].buf, 0, sizeof(buf[i].buf));
+        buf[i].offset = 0;
+        buf[i].pin = 0;
+        buf[i].time = 0;
+        buf[i].validChar = 0;
+        buf[i].writeMark = 0;
         pool.push_back(&buf[i]);
+    }
 }
 
 BufferManager::~BufferManager() {
@@ -40,11 +47,12 @@ Block* BufferManager::getBlock(std::string filename, int offset) {
     }
     Block* blk = newBlock();
     FILE *fp = fopen(filename.c_str(), "r");
-    
+
     fseek(fp, offset * 4096, SEEK_SET);
     int p = fread(blk->buf, sizeof(char), 4096, fp);
     memset(blk->buf + p, 0x00, 4096 - p);
     fclose(fp);
+    blk->validChar = p;
     blk->pin = 0;
     blk->offset = offset;
     blk->writeMark = 0;
