@@ -25,7 +25,18 @@ byte     byte    byte
 一个文件最大是：$84*32+81*32+3=5283 Byte$
 
 ### 错误信息
-createTable 返回 1 表示表重名, 0 表示成功创建
-dropTable   返回 1 表示表不存在，0 表示成功删除
-createIndex 返回 1 表示表不存在，2 表示索引已经重复过了，0 表示成功创建
-dropIndex   返回 1 表示索引不存在，0表示删除成功
++ createTable 返回 1 表示表重名, 0 表示成功创建
++ dropTable   返回 1 表示表不存在，0 表示成功删除
++ createIndex 返回 1 表示表不存在，2 表示索引已经重复过了，0 表示成功创建
++ dropIndex   返回 1 表示索引不存在，0表示删除成功
+
+## api
+
+首先，通过catalog获取表的相关信息，然后：
++ 创建表：catalog创建表（错误信息由这个控制），record创建表，index创建索引
++ 删除：catalog删除（错误信息由这个控制），record删除表，index删除索引
++ 创建索引：catalog创建索引，index创建索引
++ 删除索引：catalog删除索引，index删除索引
++ insert：
++ delete：
++ select：

@@ -21,6 +21,7 @@ private:
 
 public:
     BufferManager();
+    ~BufferManager();
     
     Block* getBlock(std::string filename, int offset); // 返回该文件的 offset 块
     void writeBlock(Block* blk);  // 写标记

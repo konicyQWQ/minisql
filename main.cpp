@@ -1,15 +1,21 @@
 #include <iostream>
 #include "Interpreter.h"
 #include "CatalogManager.h"
+#include "bufferManager.h"
+#include "recordManager.h"
 
 using namespace std;
 
 int main()
 {
+
     cout << "Welcome to MiniSQL" << endl;
 
     Interpreter i;
     auto *cm = new CatalogManager;
+    auto *bm = new BufferManager;
+    auto *rm = new RecordManager(bm);
+    
     int ret;
     do
     {
@@ -32,4 +38,6 @@ int main()
     } while (ret);
 
     delete cm;
+    delete rm;
+    delete bm;
 }

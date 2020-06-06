@@ -10,6 +10,12 @@ BufferManager::BufferManager() {
         pool.push_back(&buf[i]);
 }
 
+BufferManager::~BufferManager() {
+    for(int i=0; i<Buffer_Number; i++)
+        if(buf[i].time)
+            removeBlock(buf + i);
+}
+
 Block* BufferManager::newBlock() {
     if(pool.empty()) {
         // 如果一块空间也没了
@@ -64,6 +70,7 @@ void BufferManager::removeBlock(Block* blk) {
         fseek(fp, blk->offset * 4096, SEEK_SET);
         fwrite(blk->buf, sizeof(char), 4096, fp);
         fclose(fp);
+        blk->time = 0;
         pool.push_back(blk);
     }
 }
