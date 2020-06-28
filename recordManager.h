@@ -10,10 +10,13 @@ class RecordManager {
 private:
     BufferManager *bufferManager;
 public:
+
+    std::string errorMessage;
+
     RecordManager(BufferManager *bm);
 
     void createTable(std::string tableName);
-    void dropTabel(std::string tableName);
+    int dropTabel(std::string tableName);
     int insert(Table *table, Tuple tuple);
     int del(Table *table, std::vector<WhereQuery> &wq);
     /* select 结果会保存在tabel中 */

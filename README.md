@@ -37,15 +37,15 @@ byte     byte    byte
 + 删除：catalog删除（错误信息由这个控制），record删除表，index删除索引
 + 创建索引：catalog创建索引，index创建索引
 + 删除索引：catalog删除索引，index删除索引
-+ insert：
-+ delete：
-+ select：
++ insert：如果插入的内容里面有索引相关的，就索引去判断是否有相同的，没有索引的就遍历所有元组去搜索有没有相同的，都没有就插入，同时返回插入到的位置是什么，告诉index manager去插入新记录。
++ delete：如果条件里面有一个拥有索引的键，那么就用这个索引获得对应的元组。然后由record manager进行再删除。
++ select：如果条件里面有一个拥有索引的键，那么就用这个索引获得对应的元组。然后再由record manager进行筛选，如果没有，就直接由record获取所有元组进行筛选。
 
 ## buffer manager
 
 `Block* getBlock(std::string filename, int offset);`
 
-这个是返回 filename 这个文件的第 offset 块的指针，offset取值是0，1，2，3...，filename对应的这个必须存在。`Block->buf[x]`就是对应缓冲区块的第 x 个字节，一块是 4096 个字节。当 offset=0 时，这个 buf 就是文件第 0~4095字节，后面同理。
+这个是返回 filename 这个文件的第 offset 块的指针，offset取值是0，1，2，3...，filename对应的这个文件必须存在。`Block->buf[x]`就是对应缓冲区块的第 x 个字节，一块是 4096 个字节。当 offset=0 时，这个 buf 就是文件第 0~4095字节，后面同理。
 
 blk->validChar 是一个 int 类型变量，表示这4096个字节里面，有多少个是有效的字节（也就是说，如果文件只有4096个字节，用offset=1读取一个本没有的块的时候，这个值就是0）
 
