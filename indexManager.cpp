@@ -14,7 +14,7 @@
 using namespace std;
 
 void IndexManager::createIndex(Table &t, int indexNo) {
-    BPTree(string("table/") + t.index[indexNo].name + ".idx");
+    BPTree(string("table/") + t.index[indexNo].name + ".idx", bm);
 }
 
 void IndexManager::deleteIndex(string indexName){
@@ -22,7 +22,7 @@ void IndexManager::deleteIndex(string indexName){
 }
 
 void IndexManager::insert(string indexName, Data* data, int offset){
-    BPTree t(string("table/") + indexName + ".idx");
+    BPTree t(string("table/") + indexName + ".idx", bm);
     if (t.isEmpty())
         t.initialize(data, offset, data->type);
     else
@@ -30,7 +30,7 @@ void IndexManager::insert(string indexName, Data* data, int offset){
 }
 
 void IndexManager::eliminate(string indexName, Data* data){
-    BPTree t(string("table/") + indexName + ".idx");
+    BPTree t(string("table/") + indexName + ".idx", bm);
     if(t.isEmpty())
         throw exception();
     else
@@ -38,12 +38,12 @@ void IndexManager::eliminate(string indexName, Data* data){
 }
 
 int IndexManager::search(string indexName, Data* data){
-    BPTree t(string("table/") + indexName + ".idx");
+    BPTree t(string("table/") + indexName + ".idx", bm);
     return t.isEmpty()? -1: t.find(data);
 }
 
 std::vector<int> IndexManager::rangeSearch(string indexName, Data* inf, Data* sup){
-    BPTree t(string("table/") + indexName + ".idx");
+    BPTree t(string("table/") + indexName + ".idx", bm);
     std::vector<int> zero;
     return t.isEmpty()? zero: t.rangeFind(inf, sup);
 }

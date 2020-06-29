@@ -43,6 +43,7 @@ public:
 
 class BPTree{
 private:
+    BufferManager *BM;
     string name;
     int type;
     int order;
@@ -53,7 +54,7 @@ private:
     void internalSplit(char* block1, char* block2, char* block, Data* mid, int lpos, int rpos);
     std::vector<int> split(char* b, Data* mid, Data* key, int addr, int lpos, int rpos);
 public:
-    BPTree(string filename);
+    BPTree(string filename, BufferManager *bm);
     void initialize(Data* key, int addr, int keyType); // 键，偏移地址，键的类型(0: int, 1: float, 2~257: vchar)
     int find(Data* key); // 键
     std::vector<int> rangeFind(Data* key1, Data* key2); // 键的下界，键的上界

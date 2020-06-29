@@ -7,6 +7,7 @@
 
 #include "header/typedef.h"
 #include "tree.h"
+#include "bufferManager.h"
 
 class IndexManager
 {
@@ -16,6 +17,9 @@ public:
      * 这是CatalogManager模块完成的事情
      * 在这里我们假设一切操作全部合法
      */
+    BufferManager *bm;
+
+    IndexManager(BufferManager *bm) : bm(bm) {};
 
     void createIndex(Table &t, int indexNo); //建立索引，参数：表（引用）与索引序号
 

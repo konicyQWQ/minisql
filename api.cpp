@@ -6,7 +6,7 @@ using namespace std;
 Api::Api() {
     cm = new CatalogManager;
     bm = new BufferManager;
-    im = new IndexManager;
+    im = new IndexManager(bm);
     rm = new RecordManager(bm);
 }
 
@@ -152,7 +152,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
         for(int i=0; i<wq.size(); i++) {
             int flag = 0;
             for(int j=0; j<table->attrCnt; j++) {
-                if(table->attr[j].name == wq[i].col) {s
+                if(table->attr[j].name == wq[i].col) {
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
@@ -312,7 +312,9 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
             for(int j=0; j<table->tuple.size(); j++) {
                 #ifdef DEBUG
                     cout << "table->index[i].name = " << table->index[i].name << endl;
-                    cout << "table->tuple[j]->data[table->index[i].indexNum] = "
+                    cout << "type = "
+                        << ((iData*)table->tuple[j]->data[table->index[i].indexNum])->type << endl;
+                    cout << "value = "
                         << ((iData*)table->tuple[j]->data[table->index[i].indexNum])->value << endl;
                 #endif
                 im->eliminate(table->index[i].name, table->tuple[j]->data[table->index[i].indexNum]);
