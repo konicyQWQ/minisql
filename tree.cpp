@@ -2,14 +2,12 @@
 
 BufferManager BM;
 
-// �ɱ������ʵ��ÿ�ĸ��ֽڵ�Ϊ���鸳ֵ
-// input(a, _, 322) ��ʾ ����a[0]��a[1]=322
-static void input(char* array, ...){
+static void input(int count, char* array, ...){
     va_list parg;
     va_start(parg, array);
-    for(int i = va_arg(parg, int), j = 0; i != -1; i = va_arg(parg, int), j += 4)
+    for(int i = va_arg(parg, int), j = 0; j < count; i = va_arg(parg, int), j++)
         if(i != _)
-            CHAR2INT(array + j) = i;
+            CHAR2INT(array + j * 4) = i;
 }
 
 BPTreeException::BPTreeException(string msg): msg(msg){
@@ -26,6 +24,7 @@ BPTree::BPTree(string filename){
         keylength[i] = VCHAR_LEN;
     fstream f;
     f.open(filename, ios::in);
+    name = filename;
     if (!f){
         f.open(filename, ios::out);
         number = 0;
@@ -45,7 +44,7 @@ BPTree::BPTree(string filename){
 void BPTree::initialize(Data* key, int addr, int keyType){
     char* root = new char[BLOCKSIZE];
     int nkeys = 1;
-    input(root, INTERNAL, 0, -1, nkeys, 0, keyType);
+    input(6, root, INTERNAL, 0, -1, nkeys, 0, keyType);
     type = keyType;
     const int KL = keylength[type];
 
@@ -55,13 +54,13 @@ void BPTree::initialize(Data* key, int addr, int keyType){
         case FLOAT_TYPE: CHAR2FLOAT(root + HEADER + nkeys * (KL + POINTER)) = ((fData*)key)->value; break;
         default: memcpy((char*)(root + HEADER +nkeys * (KL + POINTER)), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
     }
-    input(root + HEADER + nkeys * (2 * KL + POINTER), -1, -1, nkeys, 1, 0);
+    input(5, root + HEADER + nkeys * (2 * KL + POINTER), -1, -1, nkeys, 1, 0);
     Block *b = BM.getBlock(name, 0);
     memcpy(b->buf, root, BLOCKSIZE);
     BM.writeBlock(b);
 
     char* block = new char[BLOCKSIZE];
-    input(block, LEAF, 1, 0, 1, 0);
+    input(4, block, LEAF, 1, 0, 1, 0);
     nkeys = 1;
     CHAR2INT(block + HEADER + KL) = nkeys;
     if (key->type == INT_TYPE)
@@ -70,7 +69,7 @@ void BPTree::initialize(Data* key, int addr, int keyType){
         CHAR2FLOAT(block + HEADER + (KL + POINTER)) = ((fData*)key)->value;
     else
         memcpy((char*)(block + HEADER + (KL + POINTER)), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
-    input(block + HEADER + nkeys * (KL + POINTER) + KL, -1, addr, nkeys, _, 0);
+    input(5, block + HEADER + nkeys * (KL + POINTER) + KL, -1, addr, nkeys, _, 0);
     b = BM.getBlock(name, 1);
     memcpy(b->buf, block, BLOCKSIZE);
     BM.writeBlock(b);
@@ -307,7 +306,7 @@ void BPTree::insert(Data* key, int addr){
             pos = CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 12);
         if (pos == -1) {
             char* newBlock = new char[BLOCKSIZE];
-            input(newBlock, LEAF, number++, CHAR2INT(block + 4), 1, 0);
+            input(5, newBlock, LEAF, number++, CHAR2INT(block + 4), 1, 0);
             CHAR2INT(newBlock + HEADER + KL) = CHAR2INT(newBlock + 12);
             if (key->type == INT_TYPE)
                 CHAR2INT(newBlock + HEADER + (KL + POINTER)) = ((iData*)key)->value;
@@ -315,7 +314,7 @@ void BPTree::insert(Data* key, int addr){
                 CHAR2FLOAT(newBlock + HEADER + (KL + POINTER)) = ((fData*)key)->value;
             else
                 memcpy((char*)(newBlock + HEADER + (KL + POINTER)), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
-            input(newBlock + HEADER + KL + POINTER + KL, -1, addr, 1, _, 0);
+            input(5, newBlock + HEADER + KL + POINTER + KL, -1, addr, 1, _, 0);
             pos = number - 1;
             Block* b = BM.getBlock(name, pos);
             memcpy(b->buf, newBlock, BLOCKSIZE);
@@ -368,7 +367,7 @@ void BPTree::insert(Data* key, int addr){
         else
             memcpy(block + HEADER + nkeys*(KL + POINTER), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
 
-        input(block + HEADER + nkeys*(KL + POINTER) + KL, CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 8), addr, nkeys);
+        input(3, block + HEADER + nkeys*(KL + POINTER) + KL, CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 8), addr, nkeys);
         CHAR2INT(block + HEADER + lastBro*(KL + POINTER) + KL) = nkeys;
         if (i == nkeys - 1)
             CHAR2INT(block + HEADER + nkeys*(KL + POINTER) + keylength[type]) = -1;
@@ -414,7 +413,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
         BM.writeBlock(b);
         
         char* root = new char[BLOCKSIZE];
-        input(root, INTERNAL, 0, -1, 1, 0, type);
+        input(6, root, INTERNAL, 0, -1, 1, 0, type);
 
         int nkeys = CHAR2INT(root + 12);
         CHAR2INT(root + HEADER + keylength[type]) = nkeys;
@@ -424,7 +423,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             CHAR2FLOAT(root + HEADER + nkeys*(keylength[type] + POINTER)) = ((fData*)mid)->value;
         else
             memcpy((char*)(root + HEADER + nkeys*(keylength[type] + POINTER)), ((sData*)mid)->value.c_str(), ((sData*)mid)->value.length() + 1);
-        input(root + HEADER + nkeys*(keylength[type] + POINTER) + keylength[type], -1, lpos, nkeys, rpos, 0);
+        input(5, root + HEADER + nkeys*(keylength[type] + POINTER) + keylength[type], -1, lpos, nkeys, rpos, 0);
 
         b = BM.getBlock(name, CHAR2INT(root + 4));
         memcpy(b->buf, root, BLOCKSIZE);
@@ -578,11 +577,11 @@ void BPTree::internalInsert(char* block, Data* mid, int lpos, int rpos){
         memcpy((char*)(block + HEADER + nkeys*(keylength[type] + POINTER)), ((sData*)mid)->value.c_str(), ((sData*)mid)->value.length() + 1);
 
     if (i == nkeys - 1) {
-        input(block + HEADER + nkeys*(keylength[type] + POINTER) + keylength[type], -1, lpos, nkeys, rpos);
-        input(block + HEADER + lastBro*(keylength[type] + POINTER) + keylength[type], nkeys, _, _, lpos);
+        input(4, block + HEADER + nkeys*(keylength[type] + POINTER) + keylength[type], -1, lpos, nkeys, rpos);
+        input(4, block + HEADER + lastBro*(keylength[type] + POINTER) + keylength[type], nkeys, _, _, lpos);
     } else {
-        input(block + HEADER + nkeys*(keylength[type] + POINTER) + keylength[type], bro, lpos, nkeys, rpos);
-        input(block + HEADER + lastBro*(keylength[type] + POINTER) + keylength[type], nkeys, _, _, lpos);
+        input(4, block + HEADER + nkeys*(keylength[type] + POINTER) + keylength[type], bro, lpos, nkeys, rpos);
+        input(4, block + HEADER + lastBro*(keylength[type] + POINTER) + keylength[type], nkeys, _, _, lpos);
         CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 4) = rpos;
     }
 }
@@ -593,8 +592,8 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
     int bro = CHAR2INT(block + HEADER + KL);
     int address, flag = 1;
     int i, pos = 1;
-    input(block1, LEAF, number++, 0, nkeys / 2, 0);
-    input(block2, LEAF, number++, 0,nkeys - nkeys / 2, 0);
+    input(5, block1, LEAF, number++, 0, nkeys / 2, 0);
+    input(5, block2, LEAF, number++, 0,nkeys - nkeys / 2, 0);
     CHAR2INT(block1 + HEADER + KL) = CHAR2INT(block2 + HEADER + KL) = 1;
 
     for (i = 0; i < nkeys / 2; i++, pos++) {
@@ -603,11 +602,11 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             address = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             if ((((iData*)key)->value < tempKey) && flag) {
                 CHAR2INT(block1 + HEADER + pos*(KL + POINTER)) = ((iData*)key)->value;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
+                input(4, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
                 flag = 0;
             } else {
                 CHAR2INT(block1 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
+                input(4, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
         }  else if (type == FLOAT_TYPE) {
@@ -615,11 +614,11 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             address = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             if ((((fData*)key)->value < tempKey) && flag) {
                 CHAR2FLOAT(block1 + HEADER + pos*(KL + POINTER)) = ((fData*)key)->value;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
+                input(4, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
                 flag = 0;
             } else {
                 CHAR2FLOAT(block1 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
+                input(4, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
         } else {
@@ -628,11 +627,11 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             address = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             if ((((sData*)key)->value.compare(tempKey)) < 0 && flag) {
                 memcpy((char*)(block1 + HEADER + pos*(KL + POINTER)), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
+                input(4, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
                 flag = 0;
             } else {
                 memcpy((char*)(block1 + HEADER + pos*(KL + POINTER)), tempKey.c_str(), tempKey.length() + 1);
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
+                input(4, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
         }
@@ -648,11 +647,11 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             address = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             if ((((iData*)key)->value < tempKey) && flag) {
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = ((iData*)key)->value;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
                 flag = 0;
             } else {
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
         }  else if (type == FLOAT_TYPE) {
@@ -660,11 +659,11 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             address = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             if ((((fData*)key)->value < tempKey) && flag) {
                 CHAR2FLOAT(block2 + HEADER + pos*(KL + POINTER)) = ((fData*)key)->value;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
                 flag = 0;
             } else {
                 CHAR2FLOAT(block2 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
         } else {
@@ -672,11 +671,11 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             address = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             if ((((sData*)key)->value.compare(tempKey)) < 0 && flag) {
                 memcpy((char*)(block2 + HEADER + pos*(KL + POINTER)), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr, pos, 0);
                 flag = 0;
             } else {
                 memcpy((char*)(block2 + HEADER + pos*(KL + POINTER)), tempKey.c_str(), tempKey.length() + 1);
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, address, pos, 0);
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
         }
@@ -688,7 +687,7 @@ void BPTree::leafSplit(char* block1, char* block2, char* block, Data* key, int a
             CHAR2FLOAT(block2 + HEADER + pos*(KL + POINTER)) = ((fData*)key)->value;
         else
             memcpy((char*)(block2 + HEADER + pos*(KL + POINTER)), ((sData*)key)->value.c_str(), ((sData*)key)->value.length() + 1);
-        input(block2 + HEADER + pos*(KL + POINTER) + KL, -1, addr, pos, _, 0);
+        input(5, block2 + HEADER + pos*(KL + POINTER) + KL, -1, addr, pos, _, 0);
         pos++;
     }
     CHAR2INT(block2 + HEADER + (pos - 1)*(KL + POINTER) + KL) = -1;
@@ -701,8 +700,8 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
     int bro = CHAR2INT(block + HEADER + KL);
     int addr1, addr2;
     int i, pos = 1, flag = 1, lastBro = 0;
-    input(block1, INTERNAL, number++, 0, nkeys / 2, 0);
-    input(block2, INTERNAL, number++, 0,nkeys - nkeys / 2, 0);
+    input(5, block1, INTERNAL, number++, 0, nkeys / 2, 0);
+    input(5, block2, INTERNAL, number++, 0, nkeys - nkeys / 2, 0);
     CHAR2INT(block1 + HEADER + KL) = CHAR2INT(block2 + HEADER + KL) = 1;
 
     for (i = 0; i < nkeys / 2; i++, pos++) {
@@ -712,13 +711,13 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             int tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
             if ((((iData*)mid)->value <= tempKey) && flag) {
                 CHAR2INT(block1 + HEADER + pos*(KL + POINTER)) = ((iData*)mid)->value;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos, 0);
+                input(5, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos, 0);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
                 CHAR2INT(block1 + HEADER + (pos - 1)*(KL + POINTER) + KL + 12) = lpos;
                 flag = 0;
             } else {
                 CHAR2INT(block1 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
+                input(5, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
                 lastBro = bro;
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
@@ -726,13 +725,13 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             float tempKey = CHAR2FLOAT(block + HEADER + bro*(KL + POINTER));
             if ((((fData*)mid)->value <= tempKey) && flag) {
                 CHAR2FLOAT(block1 + HEADER + pos*(KL + POINTER)) = ((fData*)mid)->value;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos, 0);
+                input(5, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos, 0);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
                 CHAR2INT(block1 + HEADER + (pos - 1)*(KL + POINTER) + KL + 12) = lpos;
                 flag = 0;
             } else {
                 CHAR2FLOAT(block1 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
+                input(5, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
                 lastBro = bro;
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
@@ -740,13 +739,13 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             string tempKey = (char*)(block + HEADER + bro*(KL + POINTER));
             if ((((sData*)mid)->value.compare(tempKey)) <= 0 && flag) {
                 memcpy((char*)(block1 + HEADER + pos*(KL + POINTER)), ((sData*)mid)->value.c_str(), ((sData*)mid)->value.length() + 1);
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos, 0);
+                input(5, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos, 0);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
                 CHAR2INT(block1 + HEADER + (pos - 1)*(KL + POINTER) + KL + 12) = lpos;
                 flag = 0;
             } else {
                 memcpy((char*)(block1 + HEADER + pos*(KL + POINTER)), tempKey.c_str(), tempKey.length() + 1);
-                input(block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
+                input(5, block1 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
                 lastBro = bro;
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
@@ -764,7 +763,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             addr2 = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 12);
             if ((((iData*)mid)->value <= tempKey) && flag) {
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = ((iData*)mid)->value;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
                 if (i == j) 
                     CHAR2INT(block1 + HEADER + CHAR2INT(block1 + 12) * (KL + POINTER) + KL + 12) = lpos;
@@ -774,7 +773,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
                 flag = 0;
             } else {
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
+                input(5, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
                 lastBro = bro;
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
@@ -784,7 +783,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             addr2 = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 12);
             if ((((fData*)mid)->value <= tempKey) && flag) {
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = ((fData*)mid)->value;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
                 if (i == j)
                     CHAR2INT(block1 + HEADER + CHAR2INT(block1 + 12) * (KL + POINTER) + KL + 12) = lpos;
@@ -794,7 +793,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
                 flag = 0;
             } else {
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = tempKey;
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
+                input(5, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
                 lastBro = bro;
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
@@ -804,7 +803,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             addr2 = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 12);
             if ((((sData*)mid)->value.compare(tempKey)) <= 0 && flag) {
                 memcpy((char*)(block2 + HEADER + pos*(KL + POINTER)), ((sData*)mid)->value.c_str(), ((sData*)mid)->value.length() + 1);
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
+                input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
                 if (i == j)
                     CHAR2INT(block1 + HEADER + CHAR2INT(block1 + 12) * (KL + POINTER) + KL + 12) = lpos;
@@ -814,7 +813,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
                 flag = 0;
             } else {
                 memcpy((char*)(block2 + HEADER + pos*(KL + POINTER)), tempKey.c_str(), tempKey.length() + 1);
-                input(block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
+                input(5, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, addr1, pos, addr2, 0);
                 lastBro = bro;
                 bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             }
@@ -827,7 +826,7 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
             CHAR2FLOAT(block2 + HEADER + pos*(KL + POINTER)) = ((fData*)mid)->value;
         else
             memcpy((char*)(block2 + HEADER + pos*(KL + POINTER)), ((sData*)mid)->value.c_str(), ((sData*)mid)->value.length() + 1);
-        input(block2 + HEADER + pos*(KL + POINTER) + KL, -1, lpos, pos, rpos, 0);
+        input(5, block2 + HEADER + pos*(KL + POINTER) + KL, -1, lpos, pos, rpos, 0);
         CHAR2INT(block2 + HEADER + (pos - 1)*(KL + POINTER) + KL + 12) = lpos;
         pos++;
     }
