@@ -130,6 +130,7 @@ void Api::insertInto(std::string tableName, std::vector<Data*> data) {
                     std::cout << "table->index[i].name = " << table->index[i].name << endl;
                     std::cout << "address = " << address << std::endl;
                     std::cout << "data[table->index[i].indexNum].type = " << data[table->index[i].indexNum]->type << std::endl;
+                    std::cout << "value = " << ((iData*)(data[table->index[i].indexNum]))->value << endl;
                 #endif
                 im->insert(table->index[i].name, data[table->index[i].indexNum], address);
             }
@@ -171,21 +172,37 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                     // 有索引，利用索引读入
                     if(wq[j].op == COMPARE::e) {
                         int address = im->search(table->index[i].name, wq[j].d);
+                        #ifdef DEBUG
+                            cout << "whereQuery index address = " << address << endl;
+                        #endif
+                        if(address == -1)
+                            break;
                         rm->addRecord(table, address);
                     }
                     if(wq[j].op == COMPARE::ge || wq[j].op == COMPARE::gt) {
                         std::vector<int> arr = im->rangeSearch(table->index[i].name, wq[j].d, nullptr);
-                        for(int i=0; i<arr.size(); i++)
+                        for(int i=0; i<arr.size(); i++) {
+                            #ifdef DEBUG
+                                cout << "whereQuery index address = " << arr[i] << endl;
+                            #endif
                             rm->addRecord(table, arr[i]);
+                        }
                     }
                     if(wq[j].op == COMPARE::le || wq[j].op == COMPARE::lt) {
                         std::vector<int> arr = im->rangeSearch(table->index[i].name, nullptr, wq[j].d);
-                        for(int i=0; i<arr.size(); i++)
+                        for(int i=0; i<arr.size(); i++) {
+                            #ifdef DEBUG
+                                cout << "whereQuery index address = " << arr[i] << endl;
+                            #endif
                             rm->addRecord(table, arr[i]);
+                        }
                     }
                     break;
                 }
             }
+        #ifdef DEBUG
+            cout << "table->tuple.size() = " << table->tuple.size() << endl; 
+        #endif 
         if(table->tuple.size() == 0) {
             rm->select(table, wq);
         } else {
@@ -244,6 +261,11 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                     // 有索引，利用索引读入
                     if(wq[j].op == COMPARE::e) {
                         int address = im->search(table->index[i].name, wq[j].d);
+                        #ifdef DEBUG
+                            cout << "whereQuery index address = " << address << endl;
+                        #endif
+                        if(address == -1)
+                            break;
                         rm->addRecord(table, address);
                     }
                     if(wq[j].op == COMPARE::ge || wq[j].op == COMPARE::gt) {
@@ -265,7 +287,15 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
             #endif
             rm->del(table, wq);
         } else {
+            #ifdef DEBUG
+                cout << "whereQuery have index" << endl;
+                cout << "table->tuple.size() = " << table->tuple.size() << endl;
+            #endif
             rm->choose(table, wq);
+            #ifdef DEBUG
+                cout << "choose function" << endl;
+                cout << "table->tuple.size() = " << table->tuple.size() << endl;
+            #endif
             for(int i=0; i<table->tuple.size(); i++)
                 rm->deleteRecord(table, table->tuple[i]->address);
         }
@@ -277,7 +307,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                 #ifdef DEBUG
                     cout << "table->index[i].name = " << table->index[i].name << endl;
                     cout << "table->tuple[j]->data[table->index[i].indexNum] = "
-                        << ((iData*)table->tuple[j]->data[table->index[i].indexNum])->value;
+                        << ((iData*)table->tuple[j]->data[table->index[i].indexNum])->value << endl;
                 #endif
                 im->eliminate(table->index[i].name, table->tuple[j]->data[table->index[i].indexNum]);
             }

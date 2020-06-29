@@ -313,6 +313,7 @@ bool RecordManager::judge(Table *table, std::vector<WhereQuery> &wq, Tuple *tupl
 }
 
 Tuple* RecordManager::readRecord(Table *table, Block *blk, int pos) {
+    int srcPos = pos;
     pos++;
     std::vector<Data *> data;
     for(int i=0; i<table->attrCnt; i++) {
@@ -338,7 +339,7 @@ Tuple* RecordManager::readRecord(Table *table, Block *blk, int pos) {
         }
     }
     Tuple *tuple = new Tuple(data);
-    tuple->address = pos;
+    tuple->address = blk->offset * 4096 + srcPos;
     return tuple;
 }
 
@@ -349,6 +350,9 @@ void RecordManager::addRecord(Table *table, int address) {
 }
 
 void RecordManager::deleteRecord(Table *table, int address) {
+    #ifdef DEBUG
+        cout << "delete record address = " << address << endl;
+    #endif
     Block* blk = bufferManager->getBlock(string("table/") + table->name + ".rdf", address / 4096);
     int pos = address % 4096;
     bufferManager->writeBlock(blk);
