@@ -1,9 +1,5 @@
-//
-// Created by yMac on 2020/6/28.
-//
-
-#ifndef BPT_INDEXMANAGER_H
-#define BPT_INDEXMANAGER_H
+#ifndef MINISQL_INDEXMANAGER_H
+#define MINISQL_INDEXMANAGER_H
 
 #include "header/typedef.h"
 #include "tree.h"
@@ -12,23 +8,23 @@ class IndexManager
 {
 public:
     /*
-     * IndexManager²»ÓÃ×ö´íÎóÅĞ¶Ï
-     * ÕâÊÇCatalogManagerÄ£¿éÍê³ÉµÄÊÂÇé
-     * ÔÚÕâÀïÎÒÃÇ¼ÙÉèÒ»ÇĞ²Ù×÷È«²¿ºÏ·¨
+     * IndexManagerä¸ç”¨åšé”™è¯¯åˆ¤æ–­
+     * è¿™æ˜¯CatalogManageræ¨¡å—å®Œæˆçš„äº‹æƒ…
+     * åœ¨è¿™é‡Œæˆ‘ä»¬å‡è®¾ä¸€åˆ‡æ“ä½œå…¨éƒ¨åˆæ³•
      */
 
-    void createIndex(Table &t, int indexNo); //½¨Á¢Ë÷Òı£¬²ÎÊı£º±í£¨ÒıÓÃ£©ÓëË÷ÒıĞòºÅ
+    void createIndex(Table &t, int indexNo); //å»ºç«‹ç´¢å¼•ï¼Œå‚æ•°ï¼šè¡¨ï¼ˆå¼•ç”¨ï¼‰ä¸ç´¢å¼•åºå·
 
-    void deleteIndex(Table& t, int indexNo); //É¾³ıË÷Òı£¬²ÎÊı£º±í£¨ÒıÓÃ£©ÓëË÷ÒıĞòºÅ
+    void deleteIndex(Table& t, int indexNo); //åˆ é™¤ç´¢å¼•ï¼Œå‚æ•°ï¼šè¡¨ï¼ˆå¼•ç”¨ï¼‰ä¸ç´¢å¼•åºå·
 
-    void insert(string indexName, Data data, int offset); //²åÈë¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İÓëÆ«ÒÆÁ¿
+    void insert(string indexName, Data data, int offset); //æ’å…¥è®°å½•ï¼Œå‚æ•°ï¼šç´¢å¼•åï¼Œæ•°æ®ä¸åç§»é‡
 
-    void eliminate(string indexName, Data data); //É¾³ı¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İ
+    void eliminate(string indexName, Data data); //åˆ é™¤è®°å½•ï¼Œå‚æ•°ï¼šç´¢å¼•åï¼Œæ•°æ®
 
-    int search(string indexName, Data data); //²éÑ¯¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İ
+    int search(string indexName, Data data); //æŸ¥è¯¢è®°å½•ï¼Œå‚æ•°ï¼šç´¢å¼•åï¼Œæ•°æ®
 
-    std::vector<int> rangeSearch(string indexName, Data inf, Data sup); //·¶Î§²éÑ¯¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İÏÂ½ç£¬Êı¾İÉÏ½ç
+    std::vector<int> rangeSearch(string indexName, Data inf, Data sup); //èŒƒå›´æŸ¥è¯¢è®°å½•ï¼Œå‚æ•°ï¼šç´¢å¼•åï¼Œæ•°æ®ä¸‹ç•Œï¼Œæ•°æ®ä¸Šç•Œ
 
 };
 
-#endif //BPT_INDEXMANAGER_H
+#endif //MINISQL_INDEXMANAGER_H
