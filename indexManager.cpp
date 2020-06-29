@@ -1,7 +1,3 @@
-//
-// Created by yMac on 2020/6/28.
-//
-
 #include "indexManager.h"
 //
 // Created by sky on 2020/6/6.
