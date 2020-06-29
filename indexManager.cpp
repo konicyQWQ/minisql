@@ -7,22 +7,21 @@
 // Created by sky on 2020/6/6.
 //
 
-#include "indexManager.h"
 #include <fstream>
 #include <utility>
 
 using namespace std;
 
 void IndexManager::createIndex(Table &t, int indexNo) {
-    BPTree(t.index[indexNo].name);
+    BPTree(string("table/") + t.index[indexNo].name + ".idx");
 }
 
 void IndexManager::deleteIndex(string indexName){
-    remove(indexName.c_str());
+    remove((string("table/") + indexName + ".idx").c_str());
 }
 
 void IndexManager::insert(string indexName, Data* data, int offset){
-    BPTree t(indexName);
+    BPTree t(string("table/") + indexName + ".idx");
     if (t.isEmpty())
         t.initialize(data, offset, data->type);
     else
@@ -30,7 +29,7 @@ void IndexManager::insert(string indexName, Data* data, int offset){
 }
 
 void IndexManager::eliminate(string indexName, Data* data){
-    BPTree t(indexName);
+    BPTree t(string("table/") + indexName + ".idx");
     if(t.isEmpty())
         throw exception();
     else
@@ -38,12 +37,12 @@ void IndexManager::eliminate(string indexName, Data* data){
 }
 
 int IndexManager::search(string indexName, Data* data){
-    BPTree t(indexName);
+    BPTree t(string("table/") + indexName + ".idx");
     return t.isEmpty()? -1: t.find(data);
 }
 
 std::vector<int> IndexManager::rangeSearch(string indexName, Data* inf, Data* sup){
-    BPTree t(indexName);
+    BPTree t(string("table/") + indexName + ".idx");
     std::vector<int> zero;
     return t.isEmpty()? zero: t.rangeFind(inf, sup);
 }

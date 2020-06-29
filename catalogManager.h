@@ -26,6 +26,8 @@ public:
     Table* selectTable(std::string tableName);
     /* 展示表的信息 */
     void showTable(Table &table);
+
+    int queryIndex(std::string indexName);
 };
 
 #endif

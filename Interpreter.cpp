@@ -3,9 +3,24 @@
 #include <algorithm>
 #include <iostream>
 #include <utility>
-#include <c++/fstream>
+#include <fstream>
+#include "api.h"
 
 using namespace std;
+
+// ================= 新增部分 ==========================
+
+Interpreter::Interpreter()
+{
+    this->api = new Api;
+}
+
+Interpreter::~Interpreter()
+{
+    delete this->api;
+}
+
+// ====================================================
 
 void Interpreter::setQuery(string q)
 {
@@ -58,9 +73,8 @@ void Interpreter::Pretreatment()
         if (query[pos] == ' ' && query[pos + 1] == ' ')
         {
             query.erase(pos + 1, 1);
-            pos--;//if we just continue next loop, we only check this position once
+            pos--; //if we just continue next loop, we only check this position once
         }
-
 }
 
 void Interpreter::setWords()
@@ -69,7 +83,12 @@ void Interpreter::setWords()
      * this function split the query string into words
      * we do not view punctuation marks as a word
      */
+    // ============================ 新增 ====================
+    words.clear(); // 这个地方好像忘了清空????
+    isString.clear();
     words.emplace_back("");
+    isString.emplace_back(0);
+    // ======================================================
     string s = query;
     while (!s.empty())
     {
@@ -81,21 +100,19 @@ void Interpreter::setWords()
         {
             s.erase(0, 1);
             words.push_back(s.substr(0, s.find_first_of('\'')));
-            isString.push_back(true);
+            isString.push_back(1);
             s = s.substr(1 + s.find_first_of('\''));
             continue;
         }
         //a number is also a word
-        if ((s[0] >= 'A' && s[0] <= 'Z') || (s[0] >= 'a' && s[0] <= 'z')
-            || (s[0] >= '0' && s[0] <= '9'))
+        if ((s[0] >= 'A' && s[0] <= 'Z') || (s[0] >= 'a' && s[0] <= 'z') || (s[0] >= '0' && s[0] <= '9'))
         {
             words.push_back(s.substr(0, s.find_first_of(' ')));
-            isString.push_back(false);
+            isString.push_back(0);
         }
         s = s.substr(1 + s.find_first_of(' '));
     }
 }
-
 
 int Interpreter::runQuery()
 {
@@ -104,7 +121,9 @@ int Interpreter::runQuery()
     string op = words[1];
 
     if (op == "quit")
-    { return 0; }
+    {
+        return 0;
+    }
 
     if (op == "create")
     {
@@ -120,8 +139,8 @@ int Interpreter::runQuery()
             {
                 if (words[cnt] == "primary" && words[cnt + 1] == "key")
                 {
-                    if (primaryKeyDefined)//TODO: throw exception
-                        ;
+                    if (primaryKeyDefined)
+                        throw std::exception("error: primary key has been defined!");
                     primaryKeyDefined = true;
                     cnt += 2;
                     primaryKey = words[cnt];
@@ -130,84 +149,149 @@ int Interpreter::runQuery()
                 }
                 Attribute nextAttr;
                 nextAttr.name = words[cnt];
-                cnt++;//type
+                nextAttr.isUnique = 0;
+                nextAttr.notNULL = 0;
+                cnt++; //type
                 if (words[cnt] == "int")
                 {
                     nextAttr.type = 0;
-                } else if (words[cnt] == "float")
+                }
+                else if (words[cnt] == "float")
                 {
                     nextAttr.type = 1;
-                } else if (words[cnt] == "char")
+                }
+                else if (words[cnt] == "char")
                 {
                     nextAttr.type = 2;
                     cnt++;
-                    if (atoi(words[cnt].c_str()) < 1 || atoi(words[cnt].c_str()) > 255);//TODO: throw exception
+                    if (atoi(words[cnt].c_str()) < 1 || atoi(words[cnt].c_str()) > 255)
+                        throw exception("error: length of varchar is invaild!");
                     nextAttr.length = atoi(words[cnt].c_str());
-                } else
+                }
+                else
                 {
-                    //TODO: throw exception
+                    throw exception("error: some type are invaild!");
                 }
                 cnt++;
                 if (words[cnt] == "unique")
                     nextAttr.isUnique = true;
                 attr.push_back(nextAttr);
             }
+
             //now we have a vector of attributes, a table name and a string of priamry key name
-            //TODO: invoke create_table from api
+            try
+            {
+                api->createTable(tableName, attr, primaryKey);
+                cout << "MiniSQL: create table successfully!" << endl;
+                api->showTable(tableName);
+            }
+            catch (const exception &e)
+            {
+                throw e;
+            }
         }
-        if (obj == "index")
+        else if (obj == "index")
         {
-            if (words[4] != "on")//TODO: throw exception
-                ;
+            if (words[4] != "on")
+                throw exception("error: create index syntax error!");
             string indexName = words[3];
             string tableName = words[5];
             string colName = words[6];
-            //TODO: invoke create_index from api
-        } else
-        {
-            //TODO: throw exception
+            try
+            {
+                api->createIndex(tableName, indexName, colName);
+                cout << "MiniSQL: create index successfully!" << endl;
+                api->showTable(tableName);
+            }
+            catch (const std::exception &e)
+            {
+                throw e;
+            }
         }
-    } else if (op == "select")
+        else
+        {
+            throw exception("error: it must be table or index to be created!");
+        }
+    }
+    else if (op == "select")
     {
         if (words[2] != "from")
         {
-            //TODO:throw exception
+            throw exception("error: select syntax error!");
         }
         //in MiniSQL, we only need to implement "select *"
         string tableName = words[3];
+        vector<WhereQuery> wq;
 
         if (query.find("where") != string::npos)
         {
-            vector<WhereQuery> wq = runWhere(5);
-            //TODO: invoke select
+            wq = runWhere(5);
         }
-
-    } else if (op == "drop")
+        try
+        {
+            #ifdef DEBUG
+                for(int i=0; i<wq.size(); i++) {
+                    cout << "wq[i] = " << wq[i].col << " op: " << (int)wq[i].op << " ";
+                    if(wq[i].d->type == 0) cout << "value: " << ((iData*)(wq[i].d))->value << endl;
+                    else if(wq[i].d->type == 1) cout << "value: " << ((fData*)(wq[i].d))->value << endl;
+                    else cout << "value: " << ((sData*)(wq[i].d))->value << endl;
+                }
+            #endif
+            Table *tb = api->select(tableName, wq);
+            api->showTuple(tb);
+        }
+        catch(const std::exception& e)
+        {
+            throw e;    
+        }
+        
+    }
+    else if (op == "drop")
     {
         string obj = words[2];
         if (obj == "table")
         {
             string tableName = words[3];
-            //TODO: invoke drop_table from api
-        } else if (obj == "index")
+            try
+            {
+                api->dropTable(tableName);
+                cout << "MiniSQL: drop table successfully!" << endl;
+            }
+            catch (const std::exception &e)
+            {
+                throw e;
+            }
+        }
+        else if (obj == "index")
         {
             string indexName = words[3];
-            //TODO: invoke drop_index from api
-        } else
-        {
-            //TODO: throw exception
+            try
+            {
+                api->dropIndex(indexName);
+                cout << "MiniSQL: drop index successfully!" << endl;
+            }
+            catch (const std::exception &e)
+            {
+                throw e;
+            }
         }
-    } else if (op == "insert")
+        else
+        {
+            throw exception("error: drop syntax error!");
+        }
+    }
+    else if (op == "insert")
     {
-        if (words[2] != "into" || words[4] != "values")//TODO: throw exception
-            ;
+        if (words[2] != "into" || words[4] != "values")
+            throw exception("error: insert syntax error!");
         string tableName = words[3];
         vector<Data *> data;
         for (int cnt = 5; cnt < words.size(); ++cnt)
         {
             Data *a;
-            if (isString[cnt])
+            if (isString[cnt]) {
                 a = new sData(words[cnt]);
+            }
             else
             {
                 if (words[cnt].find('.') != string::npos)
@@ -217,14 +301,37 @@ int Interpreter::runQuery()
             }
             data.push_back(a);
         }
-        //TODO: invoke insert
-    } else if (op == "delete")
+        try
+        {
+            #ifdef DEBUG
+                cout << "insert function: data.size() = " <<  data.size() << endl;
+            #endif
+            api->insertInto(tableName, data);
+            cout << "MiniSQL: insert successfully!" << endl;
+        }
+        catch(const std::exception& e)
+        {
+            throw e;
+        }
+        
+    }
+    else if (op == "delete")
     {
         string tableName = words[3];
         vector<WhereQuery> wq = runWhere(5);
-    } else
+        try
+        {
+            int ret = api->deleteRecord(tableName, wq);
+            cout << "MiniSQL: delete " << ret << " records!" << endl;
+        }
+        catch(const std::exception& e)
+        {
+            throw e;    
+        }
+    }
+    else
     {
-        //TODO: throw exception
+        throw exception("error: invaild keywords!");
     }
     return 1;
 }
@@ -238,6 +345,11 @@ vector<WhereQuery> Interpreter::runWhere(int k)
     {
         col = words[k];
         k++;
+        #ifdef DEBUG
+            std::cout << "words[k-1] = " << words[k-1] << endl;
+            std::cout << "words[k] = " << words[k] << endl;
+            std::cout << "words[k+1] = " << words[k+1] << endl;
+        #endif
         if (words[k] == "=")
             op = e;
         else if (words[k] == "!=")
@@ -257,21 +369,23 @@ vector<WhereQuery> Interpreter::runWhere(int k)
         k++;
         if (isString[k])
         {
-            sData s(words[k]);
+            sData *s = new sData(words[k]);
             WhereQuery w(s);
             w.op = op;
             w.col = col;
             wq.push_back(w);
-        } else if (words[k].find('.') != string::npos)
+        }
+        else if (words[k].find('.') != string::npos)
         {
-            fData f(atof(words[k].c_str()));
+            fData *f = new fData(atof(words[k].c_str()));
             WhereQuery w(f);
             w.op = op;
             w.col = col;
             wq.push_back(w);
-        } else
+        }
+        else
         {
-            iData i(atoi(words[k].c_str()));
+            iData *i = new iData(atoi(words[k].c_str()));
             WhereQuery w(i);
             w.op = op;
             w.col = col;
@@ -286,7 +400,8 @@ void Interpreter::runExecFile()
     string fileName = query.substr(9);
     fileName.erase(fileName.size() - 1);
     ifstream in(fileName);
-    if (!in);//TODO: throw exception
+    if (!in)
+        ; //TODO: throw exception
     query = "";
     string saved;
     while (in.peek() != EOF)
@@ -303,6 +418,8 @@ void Interpreter::runExecFile()
                 query = "";
             }
         }
-        catch (exception e){}
+        catch (exception e)
+        {
+        }
     }
 }

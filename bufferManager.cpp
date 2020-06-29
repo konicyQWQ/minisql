@@ -66,6 +66,7 @@ Block* BufferManager::getBlock(std::string filename, int offset) {
 
 void BufferManager::writeBlock(Block* blk) {
     blk->writeMark = 1;
+    blk->validChar = 4096;
 }
 
 void BufferManager::pinBlock(Block *blk) {
