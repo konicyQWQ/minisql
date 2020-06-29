@@ -182,13 +182,13 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
         for (i = 0; i < nkeys; i++) {
             if (type == INT_TYPE) {
                 int tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
-                flag = ((iData*)key1)->value < tempKey;
+                flag = (!key1)||((iData*)key1)->value < tempKey;
             }  else if (type == FLOAT_TYPE) {
                 float tempKey = CHAR2FLOAT(block + HEADER + bro*(KL + POINTER));
-                flag = ((fData*)key1)->value < tempKey;
+                flag = (!key1)||((fData*)key1)->value < tempKey;
             } else {
                 string tempKey((char*)(block + HEADER + bro*(KL + POINTER)));
-                flag = (((sData*)key1)->value.compare(tempKey)) < 0;
+                flag = (!key1)||(((sData*)key1)->value.compare(tempKey)) < 0;
             }
             tempBro = bro;
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
@@ -213,9 +213,9 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
             int tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
-            if ((((iData*)key1)->value == tempKey) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
+            if ((!key1 || (((iData*)key1)->value == tempKey)) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 int j = 0;
-                while (bro != -1 && tempKey <= ((iData*)key2)->value) {
+                while (bro != -1 && (!key2 || tempKey < ((iData*)key2)->value)) {
                     res[j++] = addr;
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
@@ -229,9 +229,9 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
             float tempKey = CHAR2FLOAT(block + HEADER + bro*(KL + POINTER));
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
-            if ((((fData*)key1)->value == tempKey) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
+            if ((!key1 || (((fData*)key1)->value == tempKey)) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 int j = 0;
-                while (bro != -1 && tempKey <= ((fData*)key2)->value) {
+                while (bro != -1 && (!key2 || tempKey < ((fData*)key2)->value)) {
                     res[j++] = addr;
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
@@ -245,9 +245,9 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
             string tempKey((char*)(block + HEADER + bro*(KL + POINTER)));
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
-            if ((((sData*)key1)->value.compare(tempKey)) == 0 && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
+            if ((!key1 || (((sData*)key1)->value.compare(tempKey)) == 0) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 int j = 0;
-                while (bro != -1 && (((sData*)key2)->value.compare(tempKey)) >= 0) {
+                while (bro != -1 && (!key2 || (((sData*)key2)->value.compare(tempKey)) > 0)) {
                     res[j++] = addr;
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));

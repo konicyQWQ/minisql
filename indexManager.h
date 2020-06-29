@@ -1,5 +1,9 @@
-#ifndef MINISQL_INDEXMANAGER_H
-#define MINISQL_INDEXMANAGER_H
+//
+// Created by yMac on 2020/6/28.
+//
+
+#ifndef BPT_INDEXMANAGER_H
+#define BPT_INDEXMANAGER_H
 
 #include "header/typedef.h"
 #include "tree.h"
@@ -15,16 +19,16 @@ public:
 
     void createIndex(Table &t, int indexNo); //建立索引，参数：表（引用）与索引序号
 
-    void deleteIndex(Table& t, int indexNo); //删除索引，参数：表（引用）与索引序号
+    void deleteIndex(string indexName); //删除索引，参数：表（引用）与索引序号
 
-    void insert(string indexName, Data data, int offset); //插入记录，参数：索引名，数据与偏移量
+    void insert(string indexName, Data* data, int offset); //插入记录，参数：索引名，数据与偏移量
 
-    void eliminate(string indexName, Data data); //删除记录，参数：索引名，数据
+    void eliminate(string indexName, Data* data); //删除记录，参数：索引名，数据
 
-    int search(string indexName, Data data); //查询记录，参数：索引名，数据
+    int search(string indexName, Data* data); //查询记录，参数：索引名，数据
 
-    std::vector<int> rangeSearch(string indexName, Data inf, Data sup); //范围查询记录，参数：索引名，数据下界，数据上界
+    std::vector<int> rangeSearch(string indexName, Data* inf, Data* sup); //范围查询记录，参数：索引名，数据下界，数据上界
 
 };
 
-#endif //MINISQL_INDEXMANAGER_H
+#endif //BPT_INDEXMANAGER_H
