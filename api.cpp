@@ -152,7 +152,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
         for(int i=0; i<wq.size(); i++) {
             int flag = 0;
             for(int j=0; j<table->attrCnt; j++) {
-                if(table->attr[j].name == wq[i].col) {
+                if(table->attr[j].name == wq[i].col) {s
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
@@ -181,6 +181,9 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                     }
                     if(wq[j].op == COMPARE::ge || wq[j].op == COMPARE::gt) {
                         std::vector<int> arr = im->rangeSearch(table->index[i].name, wq[j].d, nullptr);
+                        #ifdef DEBUG
+                            cout << "whereQuery index arr.size() = " << arr.size() << endl;
+                        #endif
                         for(int i=0; i<arr.size(); i++) {
                             #ifdef DEBUG
                                 cout << "whereQuery index address = " << arr[i] << endl;
@@ -190,6 +193,9 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                     }
                     if(wq[j].op == COMPARE::le || wq[j].op == COMPARE::lt) {
                         std::vector<int> arr = im->rangeSearch(table->index[i].name, nullptr, wq[j].d);
+                        #ifdef DEBUG
+                            cout << "whereQuery index arr.size() = " << arr.size() << endl;
+                        #endif
                         for(int i=0; i<arr.size(); i++) {
                             #ifdef DEBUG
                                 cout << "whereQuery index address = " << arr[i] << endl;

@@ -26,7 +26,7 @@ BPTree::BPTree(string filename){
     f.open(filename, ios::in);
     name = filename;
     if (!f){
-        f.open(filename, ios::out);
+        f.open(filename, ios::app);
         number = 0;
         f.close();
         return;
@@ -58,6 +58,7 @@ void BPTree::initialize(Data* key, int addr, int keyType){
     Block *b = BM.getBlock(name, 0);
     memcpy(b->buf, root, BLOCKSIZE);
     BM.writeBlock(b);
+    BM.removeBlock(b);
 
     char* block = new char[BLOCKSIZE];
     input(4, block, LEAF, 1, 0, 1, 0);
@@ -73,6 +74,7 @@ void BPTree::initialize(Data* key, int addr, int keyType){
     b = BM.getBlock(name, 1);
     memcpy(b->buf, block, BLOCKSIZE);
     BM.writeBlock(b);
+    BM.removeBlock(b);
 
     order = (BLOCKSIZE - HEADER) / (KL + POINTER) - 1;
     number = 2;
@@ -85,7 +87,6 @@ int BPTree::find(Data* key){
     char *block = new char[BLOCKSIZE];
     Block* b = BM.getBlock(name, 0);
     memcpy(block, b->buf, BLOCKSIZE);
-    //readbuffer;
     const int KL = keylength[type];
     int leafType = CHAR2INT(block);
     int bro = CHAR2INT(block + HEADER + KL);
@@ -121,7 +122,6 @@ int BPTree::find(Data* key){
         memcpy(block, b->buf, BLOCKSIZE);
         leafType = CHAR2INT(block);
         bro = CHAR2INT(block + HEADER + KL);
-        //readbuffer
     }
 
     int nkeys = CHAR2INT(block + 12);
@@ -205,7 +205,6 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
         memcpy(block, b->buf, BLOCKSIZE);
         leafType = CHAR2INT(block);
         bro = CHAR2INT(block + HEADER + KL);
-        //readbuffer
     }
     int nkeys = CHAR2INT(block + 12);
     bro = CHAR2INT(block + HEADER + KL);
@@ -319,11 +318,13 @@ void BPTree::insert(Data* key, int addr){
             Block* b = BM.getBlock(name, pos);
             memcpy(b->buf, newBlock, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
 
             CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 4) = number - 1;
             b = BM.getBlock(name, CHAR2INT(block + 4));
             memcpy(b->buf, block, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
             return;
         }
         b = BM.getBlock(name, pos);
@@ -375,6 +376,7 @@ void BPTree::insert(Data* key, int addr){
         Block* b = BM.getBlock(name, CHAR2INT(block + 4));
         memcpy(b->buf, block, BLOCKSIZE);
         BM.writeBlock(b);
+        BM.removeBlock(b);
     } else {
         CHAR2INT(block + 12) += 1;
         Data* mid = nullptr;
@@ -392,7 +394,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
     if ((CHAR2INT(block + 8) == -1) && nkeys >= order - 1) {
         char* newBlock1 = new char[BLOCKSIZE];
         char* newBlock2 = new char[BLOCKSIZE];
-        internalSplit(newBlock1, newBlock2, block, mid, lpos, rpos);//mid need change
+        internalSplit(newBlock1, newBlock2, block, mid, lpos, rpos);
         lpos = CHAR2INT(newBlock1 + 4);
         rpos = CHAR2INT(newBlock2 + 4);
         CHAR2INT(newBlock1 + 8) = 0;
@@ -407,10 +409,12 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
         Block* b = BM.getBlock(name, CHAR2INT(newBlock1 + 4));
         memcpy(b->buf, newBlock1, BLOCKSIZE);
         BM.writeBlock(b);
+        BM.removeBlock(b);
         
         b = BM.getBlock(name, CHAR2INT(newBlock2 + 4));
         memcpy(b->buf, newBlock2, BLOCKSIZE);
         BM.writeBlock(b);
+        BM.removeBlock(b);
         
         char* root = new char[BLOCKSIZE];
         input(6, root, INTERNAL, 0, -1, 1, 0, type);
@@ -428,6 +432,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
         b = BM.getBlock(name, CHAR2INT(root + 4));
         memcpy(b->buf, root, BLOCKSIZE);
         BM.writeBlock(b);
+        BM.removeBlock(b);
 
         father[0] = CHAR2INT(newBlock1 + 4);
         father[1] = CHAR2INT(newBlock2 + 4);
@@ -457,7 +462,6 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             Block* b = BM.getBlock(name, CHAR2INT(block + 8));
             char* fatherBlock = new char[BLOCKSIZE];
             memcpy(fatherBlock, b->buf, BLOCKSIZE);
-            //readbuffer;
 
             temp = split(fatherBlock, mid, key, addr, lpos, rpos);
 
@@ -467,14 +471,17 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             b = BM.getBlock(name, CHAR2INT(block + 4));
             memcpy(b->buf, block, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
 
             b = BM.getBlock(name, CHAR2INT(newBlock1 + 4));
             memcpy(b->buf, newBlock1, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
             
             b = BM.getBlock(name, CHAR2INT(newBlock2 + 4));
             memcpy(b->buf, newBlock2, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
 
             father[0] = CHAR2INT(newBlock1 + 4);
             father[1] = CHAR2INT(newBlock2 + 4);
@@ -486,7 +493,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
         }  else if (leafType == INTERNAL && nkeys >= order - 1) {
             char*newBlock1 = new char[BLOCKSIZE];
             char*newBlock2 = new char[BLOCKSIZE];
-            internalSplit(newBlock1, newBlock2, block, mid, lpos, rpos);//mid need be change
+            internalSplit(newBlock1, newBlock2, block, mid, lpos, rpos);
             lpos = CHAR2INT(newBlock1 + 4);
             rpos = CHAR2INT(newBlock2 + 4);
             CHAR2INT(block + 16) = 1;
@@ -503,7 +510,6 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             Block* b = BM.getBlock(name, CHAR2INT(block + 8));
             char*fatherBlock = new char[BLOCKSIZE];
             memcpy(fatherBlock, b->buf, BLOCKSIZE);
-            //readbuffer;
 
             temp = split(fatherBlock, mid, key, addr, lpos, rpos);
 
@@ -513,14 +519,17 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             b = BM.getBlock(name, CHAR2INT(block + 4));
             memcpy(b->buf, block, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
 
             b = BM.getBlock(name, CHAR2INT(newBlock1 + 4));
             memcpy(b->buf, newBlock1, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
 
             b = BM.getBlock(name, CHAR2INT(newBlock2 + 4));
             memcpy(b->buf, newBlock2, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
 
             father[0] = CHAR2INT(newBlock1 + 4);
             father[1] = CHAR2INT(newBlock2 + 4);
@@ -536,6 +545,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             b = BM.getBlock(name, CHAR2INT(block + 4));
             memcpy(b->buf, block, BLOCKSIZE);
             BM.writeBlock(b);
+            BM.removeBlock(b);
             b = BM.getBlock(name, 8);
             father[0] = CHAR2INT(block + 4);
             father[1] = CHAR2INT(block + 4);
@@ -885,9 +895,6 @@ void BPTree::remove(Data* key){
             string tempKey = (char*)(block + HEADER + bro*(keylength[type] + POINTER));
             (((sData*)key)->value.compare(tempKey)) == 0 && CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 16) != 1;
         }
-        tempBro = bro;
-        int addr = CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 4);
-        pos = CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 4);
         bro = CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type]);
         if (flag){
             CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 16) = 1;
