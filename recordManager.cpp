@@ -1,6 +1,7 @@
 #include "recordManager.h"
 #include <string>
 #include <iostream>
+#include <cmath>
 using std::string;
 using namespace std;
 
@@ -33,7 +34,7 @@ int RecordManager::insert(Table *table, Tuple tuple) {
     for(int i=0; i<table->attrCnt; i++) {
         if((table->attr[i].type == 0 && tuple.data[i]->type != 0)
         || (table->attr[i].type == 1 && (tuple.data[i]->type != 1 && tuple.data[i]->type != 0))
-        || (table->attr[i].type == 2 && tuple.data[i]->type - 2 > table->attr[i].length))
+        || (table->attr[i].type == 2 && (tuple.data[i]->type - 2 > table->attr[i].length || tuple.data[i]->type - 2 < 0)))
             throw std::exception("error: values are not proper for attribute!");
     }
     // 读取记录，进行合法性检验
@@ -69,7 +70,7 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                         if(table->attr[i].isUnique) {
                             int *value = (int*)&(blk->buf[pos]);
                             if(*value == ((iData*)tuple.data[i])->value)
-                                throw std::exception((string("error: insert failed beacuse of the unique attribute!") + table->attr[i].name).c_str());
+                                throw std::exception((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
                         }
                         pos+=4;
                     } else if(table->attr[i].type == 1) {
@@ -81,7 +82,7 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                             else
                                 number = ((fData*)tuple.data[i])->value;
                             if(*value == number)
-                                throw std::exception((string("error: insert failed beacuse of the unique attribute!") + table->attr[i].name).c_str());
+                                throw std::exception((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
                         }
                         pos+=4;
                     } else {
@@ -91,7 +92,7 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                             for(int i=0; i<table->attr[i].length; i++)
                                 str.push_back(value[i]);
                             if(str == ((sData*)tuple.data[i])->value)
-                                throw std::exception((string("error: insert failed beacuse of the unique attribute!") + table->attr[i].name).c_str());
+                                throw std::exception((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
                         }
                         pos+=table->attr[i].length;
                     }
@@ -149,13 +150,25 @@ Table* RecordManager::del(Table *table, std::vector<WhereQuery> &wq) {
 
         if(blk->buf[pos] == 1) {
             Tuple *tuple = readRecord(table, blk, pos);
-            if(judge(table, wq, tuple) == true) {
+            #ifdef DEBUG
+                cout << "whereQuery judge" << endl;
+            #endif
+            if(judge(table, wq, tuple)) {
+                #ifdef DEBUG
+                    cout << "whereQuery true" << endl;
+                #endif
+
                 bufferManager->writeBlock(blk);
                 blk->buf[pos] = 0;
                 table->tuple.push_back(tuple);
+                pos+=len;
+            } else {
+                #ifdef DEBUG
+                    cout << "whereQuery false" << endl;
+                #endif
+                pos+=len;
+                delete tuple;
             }
-            pos+=len;
-            delete tuple;
         } else {
             pos += len;
         }
@@ -183,7 +196,9 @@ int RecordManager::select(Table *table, std::vector<WhereQuery> &wq) {
             break;
         if(blk->buf[pos] == 1) {
             Tuple *tuple = readRecord(table, blk, pos);
-            table->tuple.push_back(tuple);
+            if(judge(table, wq, tuple)) {
+                table->tuple.push_back(tuple);
+            }
             pos += len;
         } else {
             pos += len;
@@ -210,68 +225,85 @@ bool RecordManager::judge(Table *table, std::vector<WhereQuery> &wq, Tuple *tupl
             if(wq[j].col == table->attr[i].name) {
                 if(wq[j].op == COMPARE::e) {
                     if(tuple->data[i]->type == 0) {
-                        if(((iData*)tuple->data[i])->value != ((iData&)wq[j].d).value)
+                        if(((iData*)tuple->data[i])->value != ((iData*)wq[j].d)->value)
                             return false;
                     } else if(tuple->data[i]->type == 1) {
-                        if(((fData*)tuple->data[i])->value != ((fData&)wq[j].d).value)
+                        #ifdef DEBUG
+                            cout << "wq[j].d->type = " << (int)wq[j].d->type << endl;
+                            cout << "((iData*)wq[j].d)->value = " << ((iData*)wq[j].d)->value << endl;
+                            cout << "((fData*)tuple->data[i])->value = " << ((fData*)tuple->data[i])->value << endl;
+                        #endif
+                        if(wq[j].d->type == 0 && abs(((fData*)tuple->data[i])->value - (float)((iData*)wq[j].d)->value) > 0.000001)
+                            return false;
+                        else if(wq[j].d->type == 1 && abs(((fData*)tuple->data[i])->value - ((fData*)wq[j].d)->value) > 0.0000001)
                             return false;
                     } else {
-                        if(((sData*)tuple->data[i])->value != ((sData&)wq[j].d).value)
+                        if(((sData*)tuple->data[i])->value != ((sData*)wq[j].d)->value)
                             return false;
                     }
                 } else if(wq[j].op == COMPARE::ne) {
                     if(tuple->data[i]->type == 0) {
-                        if(((iData*)tuple->data[i])->value == ((iData&)wq[j].d).value)
+                        if(((iData*)tuple->data[i])->value == ((iData*)wq[j].d)->value)
                             return false;
                     } else if(tuple->data[i]->type == 1) {
-                        if(((fData*)tuple->data[i])->value == ((fData&)wq[j].d).value)
+                        if(wq[j].d->type == 0 && abs(((fData*)tuple->data[i])->value - (float)((iData*)wq[j].d)->value) < 0.00000001)
+                            return false;
+                        else if(wq[j].d->type == 1 && abs(((fData*)tuple->data[i])->value - ((fData*)wq[j].d)->value) < 0.000000001)
                             return false;
                     } else {
-                        if(((sData*)tuple->data[i])->value == ((sData&)wq[j].d).value)
+                        if(((sData*)tuple->data[i])->value == ((sData*)wq[j].d)->value)
                             return false;
                     }
                 } else if(wq[j].op == COMPARE::ge) {
                     if(tuple->data[i]->type == 0) {
-                        if(((iData*)tuple->data[i])->value < ((iData&)wq[j].d).value)
+                        if(((iData*)tuple->data[i])->value < ((iData*)wq[j].d)->value)
                             return false;
                     } else if(tuple->data[i]->type == 1) {
-                        if(((fData*)tuple->data[i])->value < ((fData&)wq[j].d).value)
+                        if(wq[j].d->type == 0 && ((fData*)tuple->data[i])->value < (float)((iData*)wq[j].d)->value)
+                            return false;
+                        else if(wq[j].d->type == 1 && ((fData*)tuple->data[i])->value < ((fData*)wq[j].d)->value)
                             return false;
                     } else {
-                        if(((sData*)tuple->data[i])->value < ((sData&)wq[j].d).value)
+                        if(((sData*)tuple->data[i])->value < ((sData*)wq[j].d)->value)
                             return false;
                     }
                 } else if(wq[j].op == COMPARE::le) {
                     if(tuple->data[i]->type == 0) {
-                        if(((iData*)tuple->data[i])->value > ((iData&)wq[j].d).value)
+                        if(((iData*)tuple->data[i])->value > ((iData*)wq[j].d)->value)
                             return false;
                     } else if(tuple->data[i]->type == 1) {
-                        if(((fData*)tuple->data[i])->value > ((fData&)wq[j].d).value)
+                        if(wq[j].d->type == 0 && ((fData*)tuple->data[i])->value > (float)((iData*)wq[j].d)->value)
+                            return false;
+                        else if(wq[j].d->type == 1 && ((fData*)tuple->data[i])->value > ((fData*)wq[j].d)->value)
                             return false;
                     } else {
-                        if(((sData*)tuple->data[i])->value > ((sData&)wq[j].d).value)
+                        if(((sData*)tuple->data[i])->value > ((sData*)wq[j].d)->value)
                             return false;
                     }
                 } else if(wq[j].op == COMPARE::lt) {
                     if(tuple->data[i]->type == 0) {
-                        if(((iData*)tuple->data[i])->value >= ((iData&)wq[j].d).value)
+                        if(((iData*)tuple->data[i])->value >= ((iData*)wq[j].d)->value)
                             return false;
                     } else if(tuple->data[i]->type == 1) {
-                        if(((fData*)tuple->data[i])->value >= ((fData&)wq[j].d).value)
+                        if(wq[j].d->type == 0 && ((fData*)tuple->data[i])->value >= (float)((iData*)wq[j].d)->value)
+                            return false;
+                        else if(wq[j].d->type == 1 && ((fData*)tuple->data[i])->value >= ((fData*)wq[j].d)->value)
                             return false;
                     } else {
-                        if(((sData*)tuple->data[i])->value >= ((sData&)wq[j].d).value)
+                        if(((sData*)tuple->data[i])->value >= ((sData*)wq[j].d)->value)
                             return false;
                     }
                 } else if(wq[j].op == COMPARE::gt) {
                     if(tuple->data[i]->type == 0) {
-                        if(((iData*)tuple->data[i])->value <= ((iData&)wq[j].d).value)
+                        if(((iData*)tuple->data[i])->value <= ((iData*)wq[j].d)->value)
                             return false;
                     } else if(tuple->data[i]->type == 1) {
-                        if(((fData*)tuple->data[i])->value <= ((fData&)wq[j].d).value)
+                        if(wq[j].d->type == 0 && ((fData*)tuple->data[i])->value <= (float)((iData*)wq[j].d)->value)
+                            return false;
+                        else if(wq[j].d->type == 1 && ((fData*)tuple->data[i])->value <= ((fData*)wq[j].d)->value)
                             return false;
                     } else {
-                        if(((sData*)tuple->data[i])->value <= ((sData&)wq[j].d).value)
+                        if(((sData*)tuple->data[i])->value <= ((sData*)wq[j].d)->value)
                             return false;
                     }
                 }

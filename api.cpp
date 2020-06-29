@@ -155,7 +155,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
-                    || (table->attr[j].type == 2 && wq[i].d->type - 2 > table->attr[j].length))
+                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0)))
                         throw std::exception("error: values are not proper for attribute!");
                 }
             }
@@ -228,7 +228,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
-                    || (table->attr[j].type == 2 && wq[i].d->type - 2 > table->attr[i].length))
+                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0)))
                         throw std::exception("error: values are not proper for attribute!");
                 }
             }
@@ -260,15 +260,27 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                 }
             }
         if(table->tuple.size() == 0) {
+            #ifdef DEBUG
+                cout << "whereQuery no index" << endl;
+            #endif
             rm->del(table, wq);
         } else {
             rm->choose(table, wq);
             for(int i=0; i<table->tuple.size(); i++)
                 rm->deleteRecord(table, table->tuple[i]->address);
         }
+        #ifdef DEBUG
+            cout << "delete index" << endl;
+        #endif
         for(int i=0; i<table->indexCnt; i++)
-            for(int j=0; j<table->tuple.size(); j++)
+            for(int j=0; j<table->tuple.size(); j++) {
+                #ifdef DEBUG
+                    cout << "table->index[i].name = " << table->index[i].name << endl;
+                    cout << "table->tuple[j]->data[table->index[i].indexNum] = "
+                        << ((iData*)table->tuple[j]->data[table->index[i].indexNum])->value;
+                #endif
                 im->eliminate(table->index[i].name, table->tuple[j]->data[table->index[i].indexNum]);
+            }
         return table->tuple.size();
     }
 }

@@ -251,7 +251,6 @@ int Interpreter::runQuery()
                 else
                     cout << "value: " << ((sData *)(wq[i].d))->value << endl;
             }
-            cout << "select go: " << endl;
 #endif
             Table *tb = api->select(tableName, wq);
             api->showTuple(tb);
@@ -358,6 +357,10 @@ vector<WhereQuery> Interpreter::runWhere(int k)
     COMPARE op;
     while (k < words.size())
     {
+        if(words[k] == "and") {
+            k++;
+            continue;
+        }
         col = words[k];
         k++;
 #ifdef DEBUG
