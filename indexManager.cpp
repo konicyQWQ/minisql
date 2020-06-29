@@ -1,3 +1,7 @@
+//
+// Created by yMac on 2020/6/28.
+//
+
 #include "indexManager.h"
 //
 // Created by sky on 2020/6/6.
@@ -17,29 +21,29 @@ void IndexManager::deleteIndex(Table& t, int indexNo){
     remove(t.index[indexNo].name.c_str());
 }
 
-void IndexManager::insert(string indexName, Data data, int offset){
+void IndexManager::insert(string indexName, Data* data, int offset){
     BPTree t(indexName);
     if (t.isEmpty())
-        t.initialize(&data, offset, data.type);
+        t.initialize(data, offset, data->type);
     else
-        t.insert(&data, offset);
+        t.insert(data, offset);
 }
 
-void IndexManager::eliminate(string indexName, Data data){
+void IndexManager::eliminate(string indexName, Data* data){
     BPTree t(indexName);
     if(t.isEmpty())
         throw exception();
     else
-        t.remove(&data);
+        t.remove(data);
 }
 
-int IndexManager::search(string indexName, Data data){
+int IndexManager::search(string indexName, Data* data){
     BPTree t(indexName);
-    return t.isEmpty()? -1: t.find(&data);
+    return t.isEmpty()? -1: t.find(data);
 }
 
-std::vector<int> IndexManager::rangeSearch(string indexName, Data inf, Data sup){
+std::vector<int> IndexManager::rangeSearch(string indexName, Data* inf, Data* sup){
     BPTree t(indexName);
     std::vector<int> zero;
-    return t.isEmpty()? zero: t.rangeFind(&inf, &sup);
+    return t.isEmpty()? zero: t.rangeFind(inf, sup);
 }
