@@ -251,6 +251,7 @@ int Interpreter::runQuery()
                 else
                     cout << "value: " << ((sData *)(wq[i].d))->value << endl;
             }
+            cout << "select go: " << endl;
 #endif
             Table *tb = api->select(tableName, wq);
             api->showTuple(tb);
@@ -405,6 +406,7 @@ vector<WhereQuery> Interpreter::runWhere(int k)
             w.col = col;
             wq.push_back(w);
         }
+        k++;
     }
     return wq;
 }
