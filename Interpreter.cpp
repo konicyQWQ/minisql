@@ -54,6 +54,14 @@ void Interpreter::Pretreatment()
         if (query[pos] == '<' || query[pos] == '>' || query[pos] == '=' || query[pos] == '(' || query[pos] == ')' ||
             query[pos] == ';' || query[pos] == ',' || query[pos] == '*')
         {
+            if ((query[pos] == '<' && query[pos + 1] == '=') ||
+                (query[pos] == '>' && query[pos + 1] == '=') ||
+                (query[pos] == '<' && query[pos + 1] == '>'))
+            {
+                pos += 2;
+                continue;
+            }
+
             if (query[pos - 1] != ' ')
             {
                 query.insert(pos, " ");
@@ -105,7 +113,10 @@ void Interpreter::setWords()
             continue;
         }
         //a number is also a word
-        if ((s[0] >= 'A' && s[0] <= 'Z') || (s[0] >= 'a' && s[0] <= 'z') || (s[0] >= '0' && s[0] <= '9'))
+        if ((s[0] >= 'A' && s[0] <= 'Z') ||
+            (s[0] >= 'a' && s[0] <= 'z') ||
+            (s[0] >= '0' && s[0] <= '9') ||
+            s[0] == '<' || s[0] == '>' || s[0] == '=')
         {
             words.push_back(s.substr(0, s.find_first_of(' ')));
             isString.push_back(0);
@@ -229,22 +240,25 @@ int Interpreter::runQuery()
         }
         try
         {
-            #ifdef DEBUG
-                for(int i=0; i<wq.size(); i++) {
-                    cout << "wq[i] = " << wq[i].col << " op: " << (int)wq[i].op << " ";
-                    if(wq[i].d->type == 0) cout << "value: " << ((iData*)(wq[i].d))->value << endl;
-                    else if(wq[i].d->type == 1) cout << "value: " << ((fData*)(wq[i].d))->value << endl;
-                    else cout << "value: " << ((sData*)(wq[i].d))->value << endl;
-                }
-            #endif
+#ifdef DEBUG
+            for (int i = 0; i < wq.size(); i++)
+            {
+                cout << "wq[i] = " << wq[i].col << " op: " << (int)wq[i].op << " ";
+                if (wq[i].d->type == 0)
+                    cout << "value: " << ((iData *)(wq[i].d))->value << endl;
+                else if (wq[i].d->type == 1)
+                    cout << "value: " << ((fData *)(wq[i].d))->value << endl;
+                else
+                    cout << "value: " << ((sData *)(wq[i].d))->value << endl;
+            }
+#endif
             Table *tb = api->select(tableName, wq);
             api->showTuple(tb);
         }
-        catch(const std::exception& e)
+        catch (const std::exception &e)
         {
-            throw e;    
+            throw e;
         }
-        
     }
     else if (op == "drop")
     {
@@ -289,7 +303,8 @@ int Interpreter::runQuery()
         for (int cnt = 5; cnt < words.size(); ++cnt)
         {
             Data *a;
-            if (isString[cnt]) {
+            if (isString[cnt])
+            {
                 a = new sData(words[cnt]);
             }
             else
@@ -303,17 +318,16 @@ int Interpreter::runQuery()
         }
         try
         {
-            #ifdef DEBUG
-                cout << "insert function: data.size() = " <<  data.size() << endl;
-            #endif
+#ifdef DEBUG
+            cout << "insert function: data.size() = " << data.size() << endl;
+#endif
             api->insertInto(tableName, data);
             cout << "MiniSQL: insert successfully!" << endl;
         }
-        catch(const std::exception& e)
+        catch (const std::exception &e)
         {
             throw e;
         }
-        
     }
     else if (op == "delete")
     {
@@ -324,9 +338,9 @@ int Interpreter::runQuery()
             int ret = api->deleteRecord(tableName, wq);
             cout << "MiniSQL: delete " << ret << " records!" << endl;
         }
-        catch(const std::exception& e)
+        catch (const std::exception &e)
         {
-            throw e;    
+            throw e;
         }
     }
     else
@@ -345,14 +359,14 @@ vector<WhereQuery> Interpreter::runWhere(int k)
     {
         col = words[k];
         k++;
-        #ifdef DEBUG
-            std::cout << "words[k-1] = " << words[k-1] << endl;
-            std::cout << "words[k] = " << words[k] << endl;
-            std::cout << "words[k+1] = " << words[k+1] << endl;
-        #endif
+#ifdef DEBUG
+        std::cout << "words[k-1] = " << words[k - 1] << endl;
+        std::cout << "words[k] = " << words[k] << endl;
+        std::cout << "words[k+1] = " << words[k + 1] << endl;
+#endif
         if (words[k] == "=")
             op = e;
-        else if (words[k] == "!=")
+        else if (words[k] == "<>")
             op = ne;
         else if (words[k] == "<")
             op = lt;
