@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#define DEBUG
+
 typedef unsigned char byte;
 
 /* 缓冲区块的定义 */
@@ -50,15 +52,15 @@ public:
 
     explicit sData(std::string x) : Data(), value(std::move(x))
     {
-        type = x.size() + 2;//为了防止和0 1冲突
+        type = x.length() + 2;//为了防止和0 1冲突
     }
 };
 
 class Tuple
 {
-private:
-    std::vector<Data *> data;
 public:
+    std::vector<Data *> data;
+    int address;
     explicit Tuple(std::vector<Data *> d) : data(std::move(d))
     {
 
@@ -102,11 +104,11 @@ typedef enum
 
 struct WhereQuery
 {
-    explicit WhereQuery(Data &d) : d(d)
+    explicit WhereQuery(Data *d) : d(d)
     {
     }
     std::string col;
     COMPARE op;
-    Data& d;//这里用了值传递，没有用指针
+    Data* d;
 };
 #endif //MINISQL_TYPEDEF_H

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "header/typedef.h"
+#include "api.h"
 
 class Interpreter
 {
@@ -12,7 +13,9 @@ private:
 
     std::vector<std::string> words;
 
-    std::vector<bool> isString;
+    std::vector<int> isString;
+
+    Api *api;    // 新增
 
     void Pretreatment();
 
@@ -23,6 +26,9 @@ private:
     void runExecFile();
 
 public:
+    Interpreter();  // 新增：因为 api 需要 new 出来，所以这里添加了构造函数
+    ~Interpreter(); // 新增：因为 api 需要 delete，所以加了析构函数
+
     void setQuery(std::string s);
 
     int runQuery();

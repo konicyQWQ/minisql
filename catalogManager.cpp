@@ -38,6 +38,11 @@ int CatalogManager::createTable(Table &table) {
     if(allTable.count(table.name) == 1)
         return 1;   // 已经存在相同的表名了！
     
+    for(int i=0; i<table.attrCnt; i++)
+        for(int j=0; j<table.attrCnt; j++)
+            if(i != j && table.attr[i].name == table.attr[j].name)
+                return 2;   // 属性名重复
+
     // 正常处理
     FILE* file = fopen((std::string("table/") + table.name + ".tbf").c_str(), "wb");
     char buf[5284], *p = buf;
@@ -82,6 +87,10 @@ int CatalogManager::dropTable(std::string tableName) {
         if(p->second == tableName)
             p = allIndex.erase(p);
     return 0;
+}
+
+int CatalogManager::queryIndex(std::string indexName) {
+    return allIndex.count(indexName);
 }
 
 int CatalogManager::createIndex(std::string tableName, std::string indexName, byte indexNum) {

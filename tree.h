@@ -13,16 +13,15 @@
 #define CHAR2FLOAT(array) *(float*)(array)
 
 using namespace std;
-BufferManager BM;
 
 #ifndef CONST_INTEGERS
-// Æ«ÒÆÁ¿
+// Æ«ï¿½ï¿½ï¿½ï¿½
 const int BLOCKSIZE = 4096;
 const int HEADER = 24;
 const int POINTER = 20;
 const int NKEYS = 12;
 
-// ÀàÐÍÏà¹Ø
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 const int INTERNAL = 0;
 const int LEAF = 1;
 const int INT_TYPE = 0;
@@ -55,11 +54,11 @@ private:
     std::vector<int> split(char* b, Data* mid, Data* key, int addr, int lpos, int rpos);
 public:
     BPTree(string filename);
-    void initialize(Data* key, int addr, int keyType); // ²ÎÊý£ºµÚÒ»¸ö¼ü£¬µØÖ·ºÍ¼üµÄÀàÐÍ(0: int, 1: float, 2~257: vchar)
-    int find(Data* key); // ²ÎÊý£º¼üÃû
-    std::vector<int> rangeFind(Data* key1, Data* key2); // ²ÎÊý£º·¶Î§µÄÏÂ½ç£¬·¶Î§µÄÉÏ½ç
-    void insert(Data* key, int addr); // ²ÎÊý£º¼üÃû£¬µØÖ·
-    void remove(Data* key); // ²ÎÊý£º¼üÃû
+    void initialize(Data* key, int addr, int keyType); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(0: int, 1: float, 2~257: vchar)
+    int find(Data* key); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    std::vector<int> rangeFind(Data* key1, Data* key2); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½ï¿½Â½ç£¬ï¿½ï¿½Î§ï¿½ï¿½ï¿½Ï½ï¿½
+    void insert(Data* key, int addr); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+    void remove(Data* key); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     bool isEmpty() const;
 };
 
