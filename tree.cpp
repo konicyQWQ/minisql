@@ -40,9 +40,6 @@ BPTree::BPTree(string filename){
     order = (BLOCKSIZE - HEADER) / (keylength[type] + POINTER) - 1;
 }
 
-BPTree::~BPTree(){
-}
-
 void BPTree::initialize(Data* key, int addr, int keyType){
     char* root = new char[BLOCKSIZE];
     int nkeys = 1;
@@ -166,11 +163,10 @@ int BPTree::find(Data* key){
     return -1;
 }
 
-int* BPTree::rangeFind(Data* key1, Data* key2){
+std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
     char *block = new char[BLOCKSIZE];
-
-    int *re = new int[1000];
-    re[0] = -1;
+    std::vector<int> res;
+    res[0] = -1;
     Block* b = BM.getBlock(name, 0);
     memcpy(block, b->buf, BLOCKSIZE);
     
@@ -203,7 +199,7 @@ int* BPTree::rangeFind(Data* key1, Data* key2){
         if (i == nkeys)
             pos = CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 12);
         if (pos == -1) 
-            return re;
+            return res;
         b = BM.getBlock(name, pos);
         memcpy(block, b->buf, BLOCKSIZE);
         leafType = CHAR2INT(block);
@@ -220,14 +216,14 @@ int* BPTree::rangeFind(Data* key1, Data* key2){
             if ((((iData*)key1)->value == tempKey) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 int j = 0;
                 while (bro != -1 && tempKey <= ((iData*)key2)->value) {
-                    re[j++] = addr;
+                    res[j++] = addr;
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
                     addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
                 }
-                re[j] = -1;
+                res[j] = -1;
                 delete[]block;
-                return re;
+                return res;
             }
         }  else if (type == FLOAT_TYPE) {
             float tempKey = CHAR2FLOAT(block + HEADER + bro*(KL + POINTER));
@@ -236,14 +232,14 @@ int* BPTree::rangeFind(Data* key1, Data* key2){
             if ((((fData*)key1)->value == tempKey) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 int j = 0;
                 while (bro != -1 && tempKey <= ((fData*)key2)->value) {
-                    re[j++] = addr;
+                    res[j++] = addr;
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
                     addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
                 }
-                re[j] = -1;
+                res[j] = -1;
                 delete[]block;
-                return re;
+                return res;
             }
         } else {
             string tempKey((char*)(block + HEADER + bro*(KL + POINTER)));
@@ -252,19 +248,19 @@ int* BPTree::rangeFind(Data* key1, Data* key2){
             if ((((sData*)key1)->value.compare(tempKey)) == 0 && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 int j = 0;
                 while (bro != -1 && (((sData*)key2)->value.compare(tempKey)) >= 0) {
-                    re[j++] = addr;
+                    res[j++] = addr;
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
                     addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
                 }
-                re[j] = -1;
+                res[j] = -1;
                 delete[]block;
-                return re;
+                return res;
             }
         }
     }
     delete[]block;
-    return re;
+    return res;
 }
 
 void BPTree::insert(Data* key, int addr){
@@ -381,17 +377,16 @@ void BPTree::insert(Data* key, int addr){
     } else {
         CHAR2INT(block + 12) += 1;
         Data* mid = nullptr;
-        int* res = split(block, mid, key, addr, 0, 0);
-        delete[] res;
+        std::vector<int> res = split(block, mid, key, addr, 0, 0);
         BM.getBlock(name, 8);
     }
     delete[]block;
 }
 
-int* BPTree::split(char* block, Data* mid, Data* key, int addr, int lpos, int rpos){
+std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int lpos, int rpos){
     int nkeys = CHAR2INT(block + 12);
     int leafType = CHAR2INT(block);
-    int* father = new int[2];
+    std::vector<int> father;
     father[0] =  father[1] = 0;
     if ((CHAR2INT(block + 8) == -1) && nkeys >= order - 1) {
         char* newBlock1 = new char[BLOCKSIZE];
@@ -444,7 +439,7 @@ int* BPTree::split(char* block, Data* mid, Data* key, int addr, int lpos, int rp
         if (leafType == LEAF && nkeys >= order) {
             char* newBlock1 = new char[BLOCKSIZE];
             char* newBlock2 = new char[BLOCKSIZE];
-            int *temp = nullptr;
+            std::vector<int> temp;
             leafSplit(newBlock1, newBlock2, block, key, addr);
             CHAR2INT(block + 16) = 1;
             lpos = CHAR2INT(newBlock1 + 4);
@@ -486,7 +481,6 @@ int* BPTree::split(char* block, Data* mid, Data* key, int addr, int lpos, int rp
             delete[]newBlock1;
             delete[]newBlock2;
             delete[]fatherBlock;
-            delete[]temp;
             return father;
         }  else if (leafType == INTERNAL && nkeys >= order - 1) {
             char*newBlock1 = new char[BLOCKSIZE];
@@ -495,7 +489,7 @@ int* BPTree::split(char* block, Data* mid, Data* key, int addr, int lpos, int rp
             lpos = CHAR2INT(newBlock1 + 4);
             rpos = CHAR2INT(newBlock2 + 4);
             CHAR2INT(block + 16) = 1;
-            int*temp = nullptr;
+            std::vector<int> temp;
 
             if (type == INT_TYPE) {
                 mid = new iData(CHAR2INT(newBlock2 + HEADER + keylength[type] + POINTER));
@@ -533,7 +527,6 @@ int* BPTree::split(char* block, Data* mid, Data* key, int addr, int lpos, int rp
             delete[]newBlock1;
             delete[]newBlock2;
             delete[]fatherBlock;
-            delete[]temp;
             return father;
         }  else if (leafType == INTERNAL && nkeys < order - 1) {
             CHAR2INT(block + 12) += 1;
@@ -909,3 +902,6 @@ void BPTree::remove(Data* key){
     delete[]block;
 }
 
+bool BPTree::isEmpty() const{
+    return number == 0;
+}

@@ -52,15 +52,15 @@ private:
     void internalInsert(char* b, Data* mid, int lpos, int rpos);
     void leafSplit(char* block1, char* block2, char* block, Data* key, int addr);
     void internalSplit(char* block1, char* block2, char* block, Data* mid, int lpos, int rpos);
-    int* split(char* b, Data* mid, Data* key, int addr, int lpos, int rpos);
+    std::vector<int> split(char* b, Data* mid, Data* key, int addr, int lpos, int rpos);
 public:
     BPTree(string filename);
-    ~BPTree();
     void initialize(Data* key, int addr, int keyType); // 参数：第一个键，地址和键的类型(0: int, 1: float, 2~257: vchar)
     int find(Data* key); // 参数：键名
-    int* rangeFind(Data* key1, Data* key2); // 参数：范围的下界，范围的上界
+    std::vector<int> rangeFind(Data* key1, Data* key2); // 参数：范围的下界，范围的上界
     void insert(Data* key, int addr); // 参数：键名，地址
     void remove(Data* key); // 参数：键名
+    bool isEmpty() const;
 };
 
 static void input(char* array, ...);

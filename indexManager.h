@@ -1,32 +1,34 @@
-#ifndef MINISQL_INDEXMANAGER_H
-#define MINISQL_INDEXMANAGER_H
+//
+// Created by yMac on 2020/6/28.
+//
+
+#ifndef BPT_INDEXMANAGER_H
+#define BPT_INDEXMANAGER_H
 
 #include "header/typedef.h"
+#include "tree.h"
 
 class IndexManager
 {
-private:
-    Table t;
-    Attribute onAttr;
-    std::string fileName;
 public:
     /*
-     * IndexManagerä¸ç”¨åšé”™è¯¯åˆ¤æ–­
-     * è¿™æ˜¯CatalogManageræ¨¡å—å®Œæˆçš„äº‹æƒ…
-     * åœ¨è¿™é‡Œæˆ‘ä»¬å‡è®¾ä¸€åˆ‡æ“ä½œå…¨éƒ¨åˆæ³•
+     * IndexManager²»ÓÃ×ö´íÎóÅĞ¶Ï
+     * ÕâÊÇCatalogManagerÄ£¿éÍê³ÉµÄÊÂÇé
+     * ÔÚÕâÀïÎÒÃÇ¼ÙÉèÒ»ÇĞ²Ù×÷È«²¿ºÏ·¨
      */
-    IndexManager(Table &t, const Attribute& onAttr);
 
-    //~IndexManager();
+    void createIndex(Table &t, int indexNo); //½¨Á¢Ë÷Òı£¬²ÎÊı£º±í£¨ÒıÓÃ£©ÓëË÷ÒıĞòºÅ
 
-    int createIndex(std::string indexName);
+    void deleteIndex(Table& t, int indexNo); //É¾³ıË÷Òı£¬²ÎÊı£º±í£¨ÒıÓÃ£©ÓëË÷ÒıĞòºÅ
 
-    void deleteIndex();//ç›´æ¥åˆ 
+    void insert(string indexName, Data data, int offset); //²åÈë¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İÓëÆ«ÒÆÁ¿
 
-    int getOffset(Data *d);//ä¸€ä¸ªå£³ï¼Œå…¶å®æ˜¯è°ƒç”¨bptreeçš„search
+    void eliminate(string indexName, Data data); //É¾³ı¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İ
 
-    std::vector<int> getInterval(Data *d1, Data *d2);
+    int search(string indexName, Data data); //²éÑ¯¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İ
+
+    std::vector<int> rangeSearch(string indexName, Data inf, Data sup); //·¶Î§²éÑ¯¼ÇÂ¼£¬²ÎÊı£ºË÷ÒıÃû£¬Êı¾İÏÂ½ç£¬Êı¾İÉÏ½ç
+
 };
 
-
-#endif //MINISQL_INDEXMANAGER_H
+#endif //BPT_INDEXMANAGER_H
