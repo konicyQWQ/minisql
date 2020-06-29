@@ -62,6 +62,6 @@ public:
     bool isEmpty() const;
 };
 
-static void input(char* array, ...);
+static void input(int count, char* array, ...);
 
 #endif //BPT_TREE_H
