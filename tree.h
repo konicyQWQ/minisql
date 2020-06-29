@@ -15,13 +15,13 @@
 using namespace std;
 
 #ifndef CONST_INTEGERS
-// ƫ����
+// 偏移量
 const int BLOCKSIZE = 4096;
 const int HEADER = 24;
 const int POINTER = 20;
 const int NKEYS = 12;
 
-// �������
+// 类型相关
 const int INTERNAL = 0;
 const int LEAF = 1;
 const int INT_TYPE = 0;
@@ -54,11 +54,11 @@ private:
     std::vector<int> split(char* b, Data* mid, Data* key, int addr, int lpos, int rpos);
 public:
     BPTree(string filename);
-    void initialize(Data* key, int addr, int keyType); // ��������һ��������ַ�ͼ�������(0: int, 1: float, 2~257: vchar)
-    int find(Data* key); // ����������
-    std::vector<int> rangeFind(Data* key1, Data* key2); // ��������Χ���½磬��Χ���Ͻ�
-    void insert(Data* key, int addr); // ��������������ַ
-    void remove(Data* key); // ����������
+    void initialize(Data* key, int addr, int keyType); // 键，偏移地址，键的类型(0: int, 1: float, 2~257: vchar)
+    int find(Data* key); // 键
+    std::vector<int> rangeFind(Data* key1, Data* key2); // 键的下界，键的上界
+    void insert(Data* key, int addr); // 键，偏移地址
+    void remove(Data* key); // 键
     bool isEmpty() const;
 };
 
