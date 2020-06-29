@@ -17,8 +17,8 @@ void IndexManager::createIndex(Table &t, int indexNo) {
     BPTree(t.index[indexNo].name);
 }
 
-void IndexManager::deleteIndex(Table& t, int indexNo){
-    remove(t.index[indexNo].name.c_str());
+void IndexManager::deleteIndex(string indexName){
+    remove(indexName.c_str());
 }
 
 void IndexManager::insert(string indexName, Data* data, int offset){
