@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Interpreter.h"
 #include "header/typedef.h"
+#include "indexManager.h"
+#include "bufferManager.h"
 
 using namespace std;
 
