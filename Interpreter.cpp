@@ -116,7 +116,8 @@ void Interpreter::setWords()
         if ((s[0] >= 'A' && s[0] <= 'Z') ||
             (s[0] >= 'a' && s[0] <= 'z') ||
             (s[0] >= '0' && s[0] <= '9') ||
-            s[0] == '<' || s[0] == '>' || s[0] == '=')
+            s[0] == '<' || s[0] == '>' || s[0] == '=' ||
+            s[0] == '-')
         {
             words.push_back(s.substr(0, s.find_first_of(' ')));
             isString.push_back(0);
@@ -357,7 +358,8 @@ vector<WhereQuery> Interpreter::runWhere(int k)
     COMPARE op;
     while (k < words.size())
     {
-        if(words[k] == "and") {
+        if (words[k] == "and")
+        {
             k++;
             continue;
         }
