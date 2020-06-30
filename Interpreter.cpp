@@ -191,7 +191,8 @@ int Interpreter::runQuery()
                 }
                 cnt++;
                 #ifdef DEBUG
-                    cout << "words[cnt] = " << words[cnt] << endl;
+                    if(cnt < words.size())
+                        cout << "words[cnt] = " << words[cnt] << endl;
                 #endif
                 if (words[cnt] == "unique") {
                     nextAttr.isUnique = true;

@@ -82,12 +82,20 @@ void Api::createIndex(std::string tableName, std::string indexName, std::string 
             throw std::exception(e);
         }
         int ret = cm->createIndex(tableName, indexName, indexNum);
+        delete table;
+        table = cm->selectTable(tableName);
         if(ret == 2) {
             std::logic_error e("error: index name is exist!");
             throw std::exception(e);
         } else {
             // catalog manager 成功创建索引了
-            im->createIndex(*table, indexNum);
+            int pos = -1;
+            for(int i=0; i<table->indexCnt; i++)
+                if(table->index[i].name == indexName) {
+                    pos = i;
+                    break;
+                }
+            im->createIndex(*table, pos);
             std::vector<WhereQuery> wq;
             Table *all = this->select(tableName, wq);
             // 把里面已经有的元组都加进去
