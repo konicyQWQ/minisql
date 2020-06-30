@@ -45,9 +45,11 @@ void Api::createTable(std::string tableName, std::vector<Attribute> attr, std::s
     // catalog 创建表
     int ret = cm->createTable(table);
     if(ret == 1) {
-        throw std::exception("error: table already exists!");
+        std::logic_error e("error: table already exists!");
+        throw std::exception(e);
     } else if(ret == 2) {
-        throw std::exception("error: duplicate attribute name!");
+        std::logic_error e("error: duplicate attribute name!");
+        throw std::exception(e);
     } else {
         // 一切正常，接下来由 record manager 创建表，index manager 创建索引
         rm->createTable(tableName);
@@ -67,7 +69,8 @@ void Api::createIndex(std::string tableName, std::string indexName, std::string 
     Table *table = cm->selectTable(tableName);
 
     if(table == nullptr) {
-        throw std::exception("error: table is not exist!");
+        std::logic_error e("error: table is not exist!");
+        throw std::exception(e);
     } else {
         // 存在这张表
         int indexNum = -1;
@@ -75,11 +78,13 @@ void Api::createIndex(std::string tableName, std::string indexName, std::string 
             if(table->attr[i].name == colName)
                 indexNum = i;
         if(indexNum == -1) {
-            throw std::exception("error: attribute name is not found!");
+            std::logic_error e("error: attribute name is not found!");
+            throw std::exception(e);
         }
         int ret = cm->createIndex(tableName, indexName, indexNum);
         if(ret == 2) {
-            throw std::exception("error: index name is exist!");
+            std::logic_error e("error: index name is exist!");
+            throw std::exception(e);
         } else {
             // catalog manager 成功创建索引了
             im->createIndex(*table, indexNum);
@@ -97,7 +102,8 @@ void Api::createIndex(std::string tableName, std::string indexName, std::string 
 void Api::dropTable(std::string tableName) {
     Table *table = cm->selectTable(tableName);
     if(table == nullptr) {
-        throw std::exception("error: table is not exist!");
+        std::logic_error e("error: table is not exist!");
+        throw std::exception(e);
     } else {
         cm->dropTable(tableName);
         rm->dropTabel(tableName);
@@ -109,7 +115,8 @@ void Api::dropTable(std::string tableName) {
 void Api::dropIndex(std::string indexName) {
     int ret = cm->dropIndex(indexName);
     if(ret == 1) {
-        throw std::exception("error: index is not exist!");
+        std::logic_error e("error: index is not exist!");
+        throw std::exception(e);
     } else {
         im->deleteIndex(indexName);
     }
@@ -118,7 +125,8 @@ void Api::dropIndex(std::string indexName) {
 void Api::insertInto(std::string tableName, std::vector<Data*> data) {
     Table *table = cm->selectTable(tableName);
     if(table == nullptr) {
-        throw std::exception("error: table is not exist!");
+        std::logic_error e("error: table is not exist!");
+        throw std::exception(e);
     } else {
         try {
             for(int i=0; i<table->attrCnt; i++) {
@@ -155,7 +163,8 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
 
     Table *table = cm->selectTable(tableName);
     if(table == nullptr) {
-        throw std::exception("error: table is not exist!");
+        std::logic_error e("error: table is not exist!");
+        throw std::exception(e);
     } else {
         for(int i=0; i<wq.size(); i++) {
             int flag = 0;
@@ -170,13 +179,16 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
 
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
-                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0)))
-                        throw std::exception("error: values are not proper for attribute!");
+                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0))) {
+                        std::logic_error e("error: values are not proper for attribute!");
+                        throw std::exception(e);
+                    }
                 }
             }
             if(flag == 0) {
                 std::string str = std::string("error: table has no attribute called ") + wq[i].col;
-                throw std::exception(str.c_str());
+                std::logic_error e(str.c_str());
+                throw std::exception(e);
             }
         }
         /*
@@ -258,7 +270,8 @@ void Api::showTuple(Table *table) {
 int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
     Table *table = cm->selectTable(tableName);
     if(table == nullptr) {
-        throw std::exception("error: table is not exist!");
+        std::logic_error e("error: table is not exist!");
+        throw std::exception(e);
     } else {
         for(int i=0; i<wq.size(); i++) {
             int flag = 0;
@@ -273,13 +286,16 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
-                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0)))
-                        throw std::exception("error: values are not proper for attribute!");
+                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0))) {
+                        std::logic_error e("error: values are not proper for attribute!");
+                        throw std::exception(e);
+                    }
                 }
             }
             if(flag == 0) {
                 std::string str = std::string("error: table has no attribute called ") + wq[i].col;
-                throw std::exception(str.c_str());
+                std::logic_error e(str.c_str());
+                throw std::exception(e);
             }
         }
         /*

@@ -27,15 +27,21 @@ int RecordManager::insert(Table *table, Tuple tuple) {
     #endif
 
     // 首先进行类型检验
-    if(table->attrCnt > tuple.data.size())
-        throw std::exception("error: too less values!");
-    if(table->attrCnt < tuple.data.size())
-        throw std::exception("error: too many values!");  
+    if(table->attrCnt > tuple.data.size()) {
+        std::logic_error e("error: too less values!");
+        throw std::exception(e);
+    }
+    if(table->attrCnt < tuple.data.size()) {
+        std::logic_error e("error: too many values!");
+        throw std::exception(e);
+    }
     for(int i=0; i<table->attrCnt; i++) {
         if((table->attr[i].type == 0 && tuple.data[i]->type != 0)
         || (table->attr[i].type == 1 && (tuple.data[i]->type != 1 && tuple.data[i]->type != 0))
-        || (table->attr[i].type == 2 && (tuple.data[i]->type - 2 > table->attr[i].length || tuple.data[i]->type - 2 < 0)))
-            throw std::exception("error: values are not proper for attribute!");
+        || (table->attr[i].type == 2 && (tuple.data[i]->type - 2 > table->attr[i].length || tuple.data[i]->type - 2 < 0))) {
+            std::logic_error e("error: values are not proper for attribute!");
+            throw std::exception(e);
+        }
     }
     // 读取记录，进行合法性检验
     Block *blk = bufferManager->getBlock(string("table/") + table->name + ".rdf", 0);
@@ -69,8 +75,10 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                     if(table->attr[i].type == 0) {
                         if(table->attr[i].isUnique) {
                             int *value = (int*)&(blk->buf[pos]);
-                            if(*value == ((iData*)tuple.data[i])->value)
-                                throw std::exception((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                            if(*value == ((iData*)tuple.data[i])->value) {
+                                std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                                throw std::exception(e);
+                            }
                         }
                         pos+=4;
                     } else if(table->attr[i].type == 1) {
@@ -81,8 +89,10 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                                 number = ((iData*)tuple.data[i])->value;
                             else
                                 number = ((fData*)tuple.data[i])->value;
-                            if(*value == number)
-                                throw std::exception((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                            if(*value == number) {
+                                std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                                throw std::exception(e);
+                            }
                         }
                         pos+=4;
                     } else {
@@ -91,8 +101,10 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                             string str;
                             for(int i=0; i<table->attr[i].length; i++)
                                 str.push_back(value[i]);
-                            if(str == ((sData*)tuple.data[i])->value)
-                                throw std::exception((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                            if(str == ((sData*)tuple.data[i])->value) {
+                                std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                                throw std::exception(e);
+                            }
                         }
                         pos+=table->attr[i].length;
                     }

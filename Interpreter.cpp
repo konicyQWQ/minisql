@@ -151,8 +151,10 @@ int Interpreter::runQuery()
             {
                 if (words[cnt] == "primary" && words[cnt + 1] == "key")
                 {
-                    if (primaryKeyDefined)
-                        throw std::exception("error: primary key has been defined!");
+                    if (primaryKeyDefined) {
+                        std::logic_error e("error: primary key has been defined!");
+                        throw std::exception(e);
+                    }
                     primaryKeyDefined = true;
                     cnt += 2;
                     primaryKey = words[cnt];
@@ -176,13 +178,16 @@ int Interpreter::runQuery()
                 {
                     nextAttr.type = 2;
                     cnt++;
-                    if (atoi(words[cnt].c_str()) < 1 || atoi(words[cnt].c_str()) > 255)
-                        throw exception("error: length of varchar is invaild!");
+                    if (atoi(words[cnt].c_str()) < 1 || atoi(words[cnt].c_str()) > 255) {
+                        std::logic_error e("error: length of char is invaild!");
+                        throw std::exception(e);
+                    }
                     nextAttr.length = atoi(words[cnt].c_str());
                 }
                 else
                 {
-                    throw exception("error: some type are invaild!");
+                    std::logic_error e("error: some type are invaild!");
+                    throw std::exception(e);
                 }
                 cnt++;
                 if (words[cnt] == "unique") {
@@ -206,8 +211,10 @@ int Interpreter::runQuery()
         }
         else if (obj == "index")
         {
-            if (words[4] != "on")
-                throw exception("error: create index syntax error!");
+            if (words[4] != "on") {
+                std::logic_error e("error: create index syntax error!");
+                throw exception(e);
+            }
             string indexName = words[3];
             string tableName = words[5];
             string colName = words[6];
@@ -224,14 +231,16 @@ int Interpreter::runQuery()
         }
         else
         {
-            throw exception("error: it must be table or index to be created!");
+            std::logic_error e("error: it must be table or index to be created!");
+            throw exception(e);
         }
     }
     else if (op == "select")
     {
         if (words[2] != "from")
         {
-            throw exception("error: select syntax error!");
+            std::logic_error e("error: select syntax error!");
+            throw exception(e);
         }
         //in MiniSQL, we only need to implement "select *"
         string tableName = words[3];
@@ -294,13 +303,16 @@ int Interpreter::runQuery()
         }
         else
         {
-            throw exception("error: drop syntax error!");
+            std::logic_error e("error: drop syntax error!");
+            throw exception(e);
         }
     }
     else if (op == "insert")
     {
-        if (words[2] != "into" || words[4] != "values")
-            throw exception("error: insert syntax error!");
+        if (words[2] != "into" || words[4] != "values") {
+            std::logic_error e("error: insert syntax error!");
+            throw exception(e);
+        }
         string tableName = words[3];
         vector<Data *> data;
         for (int cnt = 5; cnt < words.size(); ++cnt)
@@ -348,7 +360,8 @@ int Interpreter::runQuery()
     }
     else
     {
-        throw exception("error: invaild keywords!");
+        std::logic_error e("error: invaild keywords!");
+        throw exception(e);
     }
     return 1;
 }
