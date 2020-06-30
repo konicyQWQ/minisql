@@ -179,7 +179,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                 throw std::exception(str.c_str());
             }
         }
-
+        /*
         for(int i=0; i<table->indexCnt; i++)
             for(int j=0; j<wq.size(); j++) {
                 if(table->attr[table->index[i].indexNum].name == wq[j].col) {
@@ -221,7 +221,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                     }
                     break;
                 }
-            }
+            }*/
         #ifdef DEBUG
             cout << "table->tuple.size() = " << table->tuple.size() << endl; 
         #endif 
@@ -282,7 +282,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                 throw std::exception(str.c_str());
             }
         }
-        
+        /*
         for(int i=0; i<table->indexCnt; i++)
             for(int j=0; j<wq.size(); j++) {
                 if(table->attr[table->index[i].indexNum].name == wq[j].col) {
@@ -310,7 +310,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                     }
                     break;
                 }
-            }
+            }*/
         if(table->tuple.size() == 0) {
             #ifdef DEBUG
                 cout << "whereQuery no index" << endl;
