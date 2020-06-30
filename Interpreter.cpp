@@ -185,8 +185,10 @@ int Interpreter::runQuery()
                     throw exception("error: some type are invaild!");
                 }
                 cnt++;
-                if (words[cnt] == "unique")
+                if (words[cnt] == "unique") {
                     nextAttr.isUnique = true;
+                    cnt++;
+                }
                 attr.push_back(nextAttr);
             }
 
