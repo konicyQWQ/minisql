@@ -91,8 +91,8 @@ void Api::createIndex(std::string tableName, std::string indexName, std::string 
             std::vector<WhereQuery> wq;
             Table *all = this->select(tableName, wq);
             // 把里面已经有的元组都加进去
-            for(int i=0; i<table->tuple.size(); i++)
-                im->insert(indexName, table->tuple[i]->data[indexNum], table->tuple[i]->address);
+            //for(int i=0; i<table->tuple.size(); i++)
+            //    im->insert(indexName, table->tuple[i]->data[indexNum], table->tuple[i]->address);
         }
     }
 
@@ -141,7 +141,7 @@ void Api::insertInto(std::string tableName, std::vector<Data*> data) {
             #ifdef DEBUG
                 std::cout << "record manager ok!" << endl;
             #endif
-            for(int i=0; i<table->indexCnt; i++) {
+            /*for(int i=0; i<table->indexCnt; i++) {
                 #ifdef DEBUG
                     std::cout << "table->index[i].name = " << table->index[i].name << endl;
                     std::cout << "address = " << address << std::endl;
@@ -149,7 +149,7 @@ void Api::insertInto(std::string tableName, std::vector<Data*> data) {
                     std::cout << "value = " << ((iData*)(data[table->index[i].indexNum]))->value << endl;
                 #endif
                 im->insert(table->index[i].name, data[table->index[i].indexNum], address);
-            }
+            }*/
         } catch(const std::exception& e) {
             throw e;
         }
@@ -348,7 +348,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
         #ifdef DEBUG
             cout << "delete index" << endl;
         #endif
-        for(int i=0; i<table->indexCnt; i++)
+        /*for(int i=0; i<table->indexCnt; i++)
             for(int j=0; j<table->tuple.size(); j++) {
                 #ifdef DEBUG
                     cout << "table->index[i].name = " << table->index[i].name << endl;
@@ -358,7 +358,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                         << ((iData*)table->tuple[j]->data[table->index[i].indexNum])->value << endl;
                 #endif
                 im->eliminate(table->index[i].name, table->tuple[j]->data[table->index[i].indexNum]);
-            }
+            }*/
         return table->tuple.size();
     }
 }

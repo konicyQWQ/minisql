@@ -71,7 +71,10 @@ int RecordManager::insert(Table *table, Tuple tuple) {
             } else {
                 // 一个已经存在的记录
                 pos++;
-                for(int i=0; i<table->attrCnt; i++)
+                for(int i=0; i<table->attrCnt; i++) {
+                    #ifdef DEBUG
+                        cout << "type = " << (int)table->attr[i].type << endl;
+                    #endif
                     if(table->attr[i].type == 0) {
                         if(table->attr[i].isUnique) {
                             int *value = (int*)&(blk->buf[pos]);
@@ -100,7 +103,10 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                             char *value = &(blk->buf[pos]);
                             string str;
                             for(int i=0; i<table->attr[i].length; i++)
-                                str.push_back(value[i]);
+                                str += value[i];
+                            #ifdef DEBUG
+                                cout << "str = " << str << endl;
+                            #endif
                             if(str == ((sData*)tuple.data[i])->value) {
                                 std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
                                 throw std::exception(e);
@@ -108,6 +114,7 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                         }
                         pos+=table->attr[i].length;
                     }
+                }
             }
         }
     }
