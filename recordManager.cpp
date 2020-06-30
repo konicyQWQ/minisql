@@ -103,9 +103,12 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                             char *value = &(blk->buf[pos]);
                             string str;
                             for(int i=0; i<table->attr[i].length; i++)
-                                str += value[i];
+                                if(value[i])
+                                    str += value[i];
                             #ifdef DEBUG
-                                cout << "str = " << str << endl;
+                                cout << "str = " << str << str.length() << endl;
+                                cout << "((sData*)tuple.data[i])->value = " << ((sData*)tuple.data[i])->value << ((sData*)tuple.data[i])->value.length() << endl;
+                                cout << (str == (((sData*)tuple.data[i])->value)) << endl;
                             #endif
                             if(str == ((sData*)tuple.data[i])->value) {
                                 std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());

@@ -190,6 +190,9 @@ int Interpreter::runQuery()
                     throw std::exception(e);
                 }
                 cnt++;
+                #ifdef DEBUG
+                    cout << "words[cnt] = " << words[cnt] << endl;
+                #endif
                 if (words[cnt] == "unique") {
                     nextAttr.isUnique = true;
                     cnt++;
