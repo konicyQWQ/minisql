@@ -121,6 +121,14 @@ void Api::insertInto(std::string tableName, std::vector<Data*> data) {
         throw std::exception("error: table is not exist!");
     } else {
         try {
+            for(int i=0; i<table->attrCnt; i++) {
+                if(table->attr[i].type == 1 && data[i]->type == 0) {
+                    iData* ptr = (iData*)data[i];
+                    data[i] = new fData((float)(((iData*)data[i])->value));
+                    delete ptr;
+                }
+            }
+
             int address = rm->insert(table, Tuple(data));
             #ifdef DEBUG
                 std::cout << "record manager ok!" << endl;
@@ -154,6 +162,12 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
             for(int j=0; j<table->attrCnt; j++) {
                 if(table->attr[j].name == wq[i].col) {
                     flag = 1;
+                    if(table->attr[j].type == 1 && wq[i].d->type == 0) {
+                        iData* ptr = (iData*)wq[i].d->type;
+                        wq[i].d = new fData((float)(((iData*)wq[i].d)->value));
+                        delete ptr;
+                    }   
+
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
                     || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0)))
@@ -188,7 +202,8 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                             #ifdef DEBUG
                                 cout << "whereQuery index address = " << arr[i] << endl;
                             #endif
-                            rm->addRecord(table, arr[i]);
+                            if(arr[i] >= 0)
+                                rm->addRecord(table, arr[i]);
                         }
                     }
                     if(wq[j].op == COMPARE::le || wq[j].op == COMPARE::lt) {
@@ -200,7 +215,8 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                             #ifdef DEBUG
                                 cout << "whereQuery index address = " << arr[i] << endl;
                             #endif
-                            rm->addRecord(table, arr[i]);
+                            if(arr[i] >= 0)
+                                rm->addRecord(table, arr[i]);
                         }
                     }
                     break;
@@ -248,6 +264,12 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
             int flag = 0;
             for(int j=0; j<table->attrCnt; j++) {
                 if(table->attr[j].name == wq[i].col) {
+                    if(table->attr[j].type == 1 && wq[i].d->type == 0) {
+                        iData* ptr = (iData*)wq[i].d->type;
+                        wq[i].d = new fData((float)(((iData*)wq[i].d)->value));
+                        delete ptr;
+                    } 
+
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
@@ -277,12 +299,14 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                     if(wq[j].op == COMPARE::ge || wq[j].op == COMPARE::gt) {
                         std::vector<int> arr = im->rangeSearch(table->index[i].name, wq[j].d, nullptr);
                         for(int i=0; i<arr.size(); i++)
-                            rm->addRecord(table, arr[i]);
+                            if(arr[i] >= 0)
+                                rm->addRecord(table, arr[i]);
                     }
                     if(wq[j].op == COMPARE::le || wq[j].op == COMPARE::lt) {
                         std::vector<int> arr = im->rangeSearch(table->index[i].name, nullptr, wq[j].d);
                         for(int i=0; i<arr.size(); i++)
-                            rm->addRecord(table, arr[i]);
+                            if(arr[i] >= 0)
+                                rm->addRecord(table, arr[i]);
                     }
                     break;
                 }

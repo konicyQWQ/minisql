@@ -8,10 +8,16 @@ static void input(int count, char* array, ...){
             CHAR2INT(array + j * 4) = i;
 }
 
+string bigString(){
+    string res = "";
+    for(int i = 0; i < 300; i++)
+        res.append(" ");
+    return res;
+}
 BPTreeException::BPTreeException(string msg): msg(msg){
 }
 
-const char* BPTreeException::what() noexcept{
+const char* BPTreeException::what() const noexcept{
     return msg.c_str();
 }
 
@@ -89,7 +95,7 @@ int BPTree::find(Data* key){
     const int KL = keylength[type];
     int leafType = CHAR2INT(block);
     int bro = CHAR2INT(block + HEADER + KL);
-    int tempBro, pos;
+    int lastBro, pos;
 
     while (leafType == INTERNAL) {
         int nkeys = CHAR2INT(block + 12);
@@ -106,14 +112,14 @@ int BPTree::find(Data* key){
                 string tempKey((char*)(block + HEADER + bro*(KL + POINTER)));
                 flag = (((sData*)key)->value.compare(tempKey)) < 0;
             }
-            tempBro = bro;
+            lastBro = bro;
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             if(flag)
                 break;
         }
         if (i == nkeys)
-            pos = CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 12);
+            pos = CHAR2INT(block + HEADER + lastBro*(KL + POINTER) + KL + 12);
         if (pos == -1) {
             return -1;
         }
@@ -125,11 +131,11 @@ int BPTree::find(Data* key){
 
     int nkeys = CHAR2INT(block + 12);
     bro = CHAR2INT(block + HEADER + KL);
-    
+
     for (int i = 0; i < nkeys; i++) {
         if (type == INT_TYPE) {
             int tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
-            tempBro = bro;
+            lastBro = bro;
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
@@ -139,7 +145,7 @@ int BPTree::find(Data* key){
             }
         }  else if (type == FLOAT_TYPE) {
             float tempKey = CHAR2FLOAT(block + HEADER + bro*(KL + POINTER));
-            tempBro = bro;
+            lastBro = bro;
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
@@ -149,7 +155,7 @@ int BPTree::find(Data* key){
             }
         } else {
             string tempKey((char*)(block + HEADER + bro*(KL + POINTER)));
-            tempBro = bro;
+            lastBro = bro;
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
@@ -166,39 +172,53 @@ int BPTree::find(Data* key){
 std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
     char *block = new char[BLOCKSIZE];
     std::vector<int> res;
-    res[0] = -1;
     Block* b = BM->getBlock(name, 0);
     memcpy(block, b->buf, BLOCKSIZE);
-    
+
+    if(!key1){
+        if(type == 0)
+            key1 = new iData((1<<31)+1);
+        if(type == 1)
+            key1 = new fData(-3.4e38);
+        if(type >= 2)
+            key1 = new sData("");
+    }
+    if(!key2){
+        if(type == 0)
+            key2 = new iData(~(1<<31));
+        if(type == 1)
+            key2 = new fData(3.4e38);
+        if(type >= 2)
+            key2 = new sData(bigString());
+    }
     const int KL = keylength[type];
     int leafType = CHAR2INT(block);
     int bro = CHAR2INT(block + HEADER + KL);
-    int tempBro, pos;
-
+    int lastBro, pos;
     while (leafType == INTERNAL) {
         int nkeys = CHAR2INT(block + 12);
-        bool flag;
         int i;
+        bool flag;
         for (i = 0; i < nkeys; i++) {
             if (type == INT_TYPE) {
                 int tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
-                flag = (!key1)||((iData*)key1)->value < tempKey;
+                flag = ((iData*)key1)->value < tempKey;
             }  else if (type == FLOAT_TYPE) {
                 float tempKey = CHAR2FLOAT(block + HEADER + bro*(KL + POINTER));
-                flag = (!key1)||((fData*)key1)->value < tempKey;
+                flag = ((fData*)key1)->value < tempKey;
             } else {
                 string tempKey((char*)(block + HEADER + bro*(KL + POINTER)));
-                flag = (!key1)||(((sData*)key1)->value.compare(tempKey)) < 0;
+                flag = (((sData*)key1)->value.compare(tempKey)) < 0;
             }
-            tempBro = bro;
+            lastBro = bro;
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             if(flag)
                 break;
         }
         if (i == nkeys)
-            pos = CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 12);
-        if (pos == -1) 
+            pos = CHAR2INT(block + HEADER + lastBro*(KL + POINTER) + KL + 12);
+        if (pos == -1)
             return res;
         b = BM->getBlock(name, pos);
         memcpy(block, b->buf, BLOCKSIZE);
@@ -212,15 +232,13 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
             int tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
-            if ((!key1 || (((iData*)key1)->value == tempKey)) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
-                int j = 0;
+            if ((((iData*)key1)->value == tempKey) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
                 while (bro != -1 && (!key2 || tempKey < ((iData*)key2)->value)) {
-                    res[j++] = addr;
+                    res.push_back(addr);
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
                     addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
                 }
-                res[j] = -1;
                 delete[]block;
                 return res;
             }
@@ -229,14 +247,12 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             if ((!key1 || (((fData*)key1)->value == tempKey)) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
-                int j = 0;
                 while (bro != -1 && (!key2 || tempKey < ((fData*)key2)->value)) {
-                    res[j++] = addr;
+                    res.push_back(addr);
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
                     addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
                 }
-                res[j] = -1;
                 delete[]block;
                 return res;
             }
@@ -245,14 +261,12 @@ std::vector<int> BPTree::rangeFind(Data* key1, Data* key2){
             int addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             if ((!key1 || (((sData*)key1)->value.compare(tempKey)) == 0) && CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 16) != 1) {
-                int j = 0;
                 while (bro != -1 && (!key2 || (((sData*)key2)->value.compare(tempKey)) > 0)) {
-                    res[j++] = addr;
+                    res.push_back(addr);
                     bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
                     tempKey = CHAR2INT(block + HEADER + bro*(KL + POINTER));
                     addr = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
                 }
-                res[j] = -1;
                 delete[]block;
                 return res;
             }
@@ -270,11 +284,11 @@ void BPTree::insert(Data* key, int addr){
     Block* b = BM->getBlock(name, 0);
     char *block = new char[BLOCKSIZE];
     memcpy(block, b->buf, BLOCKSIZE);
-    
+
     const int KL = keylength[type];
     int leafType = CHAR2INT(block);
     int bro = CHAR2INT(block + HEADER + KL);
-    int tempBro = 0, pos = 0;
+    int lastBro = 0, pos = 0;
 
     while (leafType == INTERNAL) {
         int nkeys = CHAR2INT(block + 12);
@@ -294,14 +308,14 @@ void BPTree::insert(Data* key, int addr){
                 if ((((sData*)key)->value.compare(tempKey)) < 0)
                     flag = true;
             }
-            tempBro = bro;
+            lastBro = bro;
             pos = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4);
             bro = CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL);
             if(flag)
                 break;
         }
         if (i == nkeys)
-            pos = CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 12);
+            pos = CHAR2INT(block + HEADER + lastBro*(KL + POINTER) + KL + 12);
         if (pos == -1) {
             char* newBlock = new char[BLOCKSIZE];
             input(5, newBlock, LEAF, number++, CHAR2INT(block + 4), 1, 0);
@@ -319,7 +333,7 @@ void BPTree::insert(Data* key, int addr){
             BM->writeBlock(b);
             BM->removeBlock(b);
 
-            CHAR2INT(block + HEADER + tempBro*(KL + POINTER) + KL + 4) = number - 1;
+            CHAR2INT(block + HEADER + lastBro*(KL + POINTER) + KL + 4) = number - 1;
             b = BM->getBlock(name, CHAR2INT(block + 4));
             memcpy(b->buf, block, BLOCKSIZE);
             BM->writeBlock(b);
@@ -398,23 +412,23 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
         rpos = CHAR2INT(newBlock2 + 4);
         CHAR2INT(newBlock1 + 8) = 0;
         CHAR2INT(newBlock2 + 8) = 0;
-        if (type == INT_TYPE) 
+        if (type == INT_TYPE)
             mid = new iData(CHAR2INT(newBlock2 + HEADER + keylength[type] + POINTER));
         else if (type == FLOAT_TYPE)
             mid = new fData(CHAR2FLOAT(newBlock2 + HEADER + keylength[type] + POINTER));
         else
-            mid = new sData(newBlock2 + HEADER + keylength[type] + POINTER);
+            mid = new sData((char *)(newBlock2 + HEADER + keylength[type] + POINTER));
 
         Block* b = BM->getBlock(name, CHAR2INT(newBlock1 + 4));
         memcpy(b->buf, newBlock1, BLOCKSIZE);
         BM->writeBlock(b);
         BM->removeBlock(b);
-        
+
         b = BM->getBlock(name, CHAR2INT(newBlock2 + 4));
         memcpy(b->buf, newBlock2, BLOCKSIZE);
         BM->writeBlock(b);
         BM->removeBlock(b);
-        
+
         char* root = new char[BLOCKSIZE];
         input(6, root, INTERNAL, 0, -1, 1, 0, type);
 
@@ -476,7 +490,7 @@ std::vector<int> BPTree::split(char* block, Data* mid, Data* key, int addr, int 
             memcpy(b->buf, newBlock1, BLOCKSIZE);
             BM->writeBlock(b);
             BM->removeBlock(b);
-            
+
             b = BM->getBlock(name, CHAR2INT(newBlock2 + 4));
             memcpy(b->buf, newBlock2, BLOCKSIZE);
             BM->writeBlock(b);
@@ -774,9 +788,9 @@ void BPTree::internalSplit(char* block1, char* block2, char* block, Data* mid, i
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER)) = ((iData*)mid)->value;
                 input(4, block2 + HEADER + pos*(KL + POINTER) + KL, pos + 1, lpos, pos, rpos);
                 CHAR2INT(block + HEADER + bro*(KL + POINTER) + KL + 4) = rpos;
-                if (i == j) 
+                if (i == j)
                     CHAR2INT(block1 + HEADER + CHAR2INT(block1 + 12) * (KL + POINTER) + KL + 12) = lpos;
-                else 
+                else
                     CHAR2INT(block2 + HEADER + (pos - 1)*(KL + POINTER) + KL + 12) = lpos;
                 CHAR2INT(block2 + HEADER + pos*(KL + POINTER) + KL + 16) = 0;
                 flag = 0;
@@ -847,7 +861,7 @@ void BPTree::remove(Data* key){
     memcpy(block, b->buf, BLOCKSIZE);
     int leafType = CHAR2INT(block);
     int bro = CHAR2INT(block + HEADER + keylength[type]);
-    int tempBro, pos;
+    int lastBro, pos;
     while (leafType == INTERNAL) {
         int nkeys = CHAR2INT(block + 12);
         int i = 0;
@@ -863,16 +877,16 @@ void BPTree::remove(Data* key){
                 string tempKey = (char*)(block + HEADER + bro*(keylength[type] + POINTER));
                 flag = (((sData*)key)->value.compare(tempKey)) < 0;
             }
-            tempBro = bro;
+            lastBro = bro;
             pos = CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 4);
             bro = CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type]);
             if (flag)
                 break;
         }
         if (i == nkeys)
-            pos = CHAR2INT(block + HEADER + tempBro*(keylength[type] + POINTER) + keylength[type] + 12);
+            pos = CHAR2INT(block + HEADER + lastBro*(keylength[type] + POINTER) + keylength[type] + 12);
         if (pos == -1)
-            throw BPTreeException("Wrong deletion!");
+            throw BPTreeException("Null deletion!");
         b = BM->getBlock(name, pos);
         memcpy(block, b->buf, BLOCKSIZE);
         leafType = CHAR2INT(block);
@@ -892,7 +906,7 @@ void BPTree::remove(Data* key){
             flag = (((fData*)key)->value == tempKey) && CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 16) != 1;
         } else {
             string tempKey = (char*)(block + HEADER + bro*(keylength[type] + POINTER));
-            (((sData*)key)->value.compare(tempKey)) == 0 && CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 16) != 1;
+            flag = (((sData*)key)->value.compare(tempKey)) == 0 && CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type] + 16) != 1;
         }
         bro = CHAR2INT(block + HEADER + bro*(keylength[type] + POINTER) + keylength[type]);
         if (flag){
@@ -900,12 +914,10 @@ void BPTree::remove(Data* key){
             Block* b = BM->getBlock(name, CHAR2INT(block + 4));
             memcpy(b->buf, block, BLOCKSIZE);
             break;
-        } else
-            throw BPTreeException("Wrong deletion!");
-        
-        if (i == nkeys)
-            throw BPTreeException("Wrong deletion!");
+        }
     }
+    if (i == nkeys)
+        throw BPTreeException("Null deletion!");
     delete[]block;
 }
 

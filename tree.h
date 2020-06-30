@@ -16,7 +16,7 @@ using namespace std;
 
 #ifndef CONST_INTEGERS
 // 偏移量
-const int BLOCKSIZE = 4096;
+const int BLOCKSIZE = 4095;
 const int HEADER = 24;
 const int POINTER = 20;
 const int NKEYS = 12;
@@ -38,7 +38,7 @@ class BPTreeException: public exception{
     string msg;
 public:
     BPTreeException(string msg);
-    const char* what() noexcept;
+    const char* what() const noexcept;
 };
 
 class BPTree{
