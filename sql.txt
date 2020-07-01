@@ -4,4 +4,6 @@ create table test(
     c char(10),
     primary key(a)
 );
+insert into test values(1.1, '1', '12');
+insert into test values(1, 2, '12');
 insert into test values(1, 2, '12');

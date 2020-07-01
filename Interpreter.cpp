@@ -452,11 +452,11 @@ void Interpreter::runExecFile()
         try
         {
             in >> saved;
+            query = query + saved + " ";
             #ifdef DEBUG
                 cout << "saved: " << saved << endl;
                 cout << "query: " << query << endl;
             #endif
-            query = query + saved + " ";
             if (saved.back() == ';')
             {
                 Pretreatment();
