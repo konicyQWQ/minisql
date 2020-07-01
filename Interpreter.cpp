@@ -272,6 +272,7 @@ int Interpreter::runQuery()
 #endif
             Table *tb = api->select(tableName, wq);
             api->showTuple(tb);
+            delete tb;
         }
         catch (const std::exception &e)
         {

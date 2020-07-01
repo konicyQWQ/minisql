@@ -118,6 +118,7 @@ void Api::dropTable(std::string tableName) {
         for(int i=0; i<table->indexCnt; i++)
             im->deleteIndex(table->index[i].name);
     }
+    delete table;
 }
 
 void Api::dropIndex(std::string indexName) {
@@ -162,6 +163,7 @@ void Api::insertInto(std::string tableName, std::vector<Data*> data) {
             throw e;
         }
     }
+    delete table;
 }
 
 Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
