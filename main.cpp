@@ -7,8 +7,6 @@
 
 using namespace std;
 
-#define TIME_MEASURE
-
 int main()
 {
 #ifdef TIME_MEASURE

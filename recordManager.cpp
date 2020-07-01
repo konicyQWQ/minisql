@@ -27,14 +27,6 @@ int RecordManager::insert(Table *table, Tuple tuple) {
     #endif
 
     // 首先进行类型检验
-    if(table->attrCnt > tuple.data.size()) {
-        std::logic_error e("error: too less values!");
-        throw std::exception(e);
-    }
-    if(table->attrCnt < tuple.data.size()) {
-        std::logic_error e("error: too many values!");
-        throw std::exception(e);
-    }
     for(int i=0; i<table->attrCnt; i++) {
         if((table->attr[i].type == 0 && tuple.data[i]->type != 0)
         || (table->attr[i].type == 1 && (tuple.data[i]->type != 1 && tuple.data[i]->type != 0))
@@ -75,6 +67,9 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                     #ifdef DEBUG
                         cout << "type = " << (int)table->attr[i].type << endl;
                     #endif
+                    if(table->attr[i].isUnique == false)
+                        continue;
+
                     if(table->attr[i].type == 0) {
                         if(table->attr[i].isUnique) {
                             int *value = (int*)&(blk->buf[pos]);
@@ -101,19 +96,22 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                     } else {
                         if(table->attr[i].isUnique) {
                             char *value = &(blk->buf[pos]);
+                            char str[260];
+                            memcpy(str, value, table->attr[i].length);
+                            str[table->attr[i].length + 1] = 0;
+                            if(strcmp(str, ((sData*)tuple.data[i])->value.c_str()) == 0) {
+                                std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
+                                throw std::exception(e);
+                            }
+                            /*
                             string str;
                             for(int i=0; i<table->attr[i].length; i++)
                                 if(value[i])
                                     str += value[i];
-                            #ifdef DEBUG
-                                cout << "str = " << str << str.length() << endl;
-                                cout << "((sData*)tuple.data[i])->value = " << ((sData*)tuple.data[i])->value << ((sData*)tuple.data[i])->value.length() << endl;
-                                cout << (str == (((sData*)tuple.data[i])->value)) << endl;
-                            #endif
                             if(str == ((sData*)tuple.data[i])->value) {
                                 std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
                                 throw std::exception(e);
-                            }
+                            }*/
                         }
                         pos+=table->attr[i].length;
                     }
@@ -147,9 +145,8 @@ int RecordManager::insert(Table *table, Tuple tuple) {
         } else {
             char src[256];
             memset(src, 0, sizeof(src));
-            string str = ((sData*)tuple.data[i])->value;
-            for(int j=0; j<str.length(); j++)
-                src[j] = str[j];
+            string &str = ((sData*)tuple.data[i])->value;
+            memcpy(src, str.c_str(), str.length());
             memcpy(blk->buf + pos, src, table->attr[i].length);
             pos+=table->attr[i].length;
         }
