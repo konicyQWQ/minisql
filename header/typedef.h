@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#define DEBUG
+//#define DEBUG
 
 typedef unsigned char byte;
 

@@ -38,7 +38,7 @@ int RecordManager::insert(Table *table, Tuple tuple) {
     for(int i=0; i<table->attrCnt; i++) {
         if((table->attr[i].type == 0 && tuple.data[i]->type != 0)
         || (table->attr[i].type == 1 && (tuple.data[i]->type != 1 && tuple.data[i]->type != 0))
-        || (table->attr[i].type == 2 && (tuple.data[i]->type - 2 > table->attr[i].length || tuple.data[i]->type - 2 < 0))) {
+        || (table->attr[i].type >= 2 && (tuple.data[i]->type - 2 > table->attr[i].length || tuple.data[i]->type - 2 < 0))) {
             std::logic_error e("error: values are not proper for attribute!");
             throw std::exception(e);
         }
