@@ -79,7 +79,26 @@ void BufferManager::removeBlock(Block* blk) {
         fseek(fp, blk->offset * 4096, SEEK_SET);
         fwrite(blk->buf, sizeof(char), 4096, fp);
         fclose(fp);
-        blk->time = 0;
-        pool.push_back(blk);
+    }
+    if(idx.count(blk->filename)) {
+        std::vector<Block*> &vc = idx[blk->filename];
+        for(int i=0; i<vc.size(); i++)
+            if(vc[i]->offset == blk->offset) {
+                vc.erase(vc.begin() + i);
+                break;
+            }
+    }
+    blk->time = 0;
+    pool.push_back(blk);
+}
+
+void BufferManager::discardBlock(std::string filename) {
+    if(idx.count(filename)) {
+        std::vector<Block*> &vc = idx[filename];
+        for(int i=0; i<vc.size(); i++) {
+            vc[i]->time = 0;
+            pool.push_back(vc[i]);
+        }
+        idx.erase(idx.find(filename));
     }
 }

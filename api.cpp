@@ -117,6 +117,7 @@ void Api::dropTable(std::string tableName) {
             im->deleteIndex(table->index[i].name);
         cm->dropTable(tableName);
         rm->dropTabel(tableName);
+        bm->discardBlock(string("table/") + tableName + ".rdf");
     }
     delete table;
 }

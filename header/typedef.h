@@ -6,6 +6,7 @@
 #include <vector>
 
 //#define DEBUG
+#define OPEN_INDEX
 
 typedef unsigned char byte;
 
