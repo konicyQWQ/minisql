@@ -3,8 +3,11 @@
 #include "header/typedef.h"
 #include "indexManager.h"
 #include "bufferManager.h"
+#include <time.h>
 
 using namespace std;
+
+#define TIME_MEASURE
 
 int main()
 {
@@ -25,14 +28,22 @@ int main()
             q.append(" " + tmp);
         } while (tmp.back() != ';');
         i.setQuery(q);
+#ifdef TIME_MEASURE
+        clock_t start, finish;
+        start = clock();
+#endif
         try
-        { ret = i.runQuery(); }
+        { 
+            ret = i.runQuery();
+        }
         catch (exception &e)
         {
             cout << "MiniSQL: " << e.what() << endl;
         }
-        // =============== 新增 ==============
+#ifdef TIME_MEASURE
+        finish = clock();
+        cout << (double)(finish-start) / CLOCKS_PER_SEC << " seconds" << endl;
+#endif
         q.clear();
-        // ==================================
     } while (ret);
 }
