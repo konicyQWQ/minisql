@@ -179,6 +179,14 @@ void Api::insertInto(std::string tableName, std::vector<Data *> data)
     {
         try
         {
+            if(table->attrCnt > data.size()) {
+                std::logic_error e("error: too less values!");
+                throw std::exception(e);
+            }
+            if(table->attrCnt < data.size()) {
+                std::logic_error e("error: too many values!");
+                throw std::exception(e);
+            }
             for (int i = 0; i < table->attrCnt; i++)
             {
                 if (table->attr[i].type == 1 && data[i]->type == 0)
