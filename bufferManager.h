@@ -27,6 +27,7 @@ public:
     void writeBlock(Block* blk);  // 写标记
     void pinBlock(Block *blk);    // pin标记
     void removeBlock(Block* blk); // 写回一个块到文件
+    void discardBlock(std::string filename);
 
 };
 

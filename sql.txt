@@ -10,8 +10,8 @@ insert into test values(2, 3, '13');
 insert into test values(3, 4, '15');
 insert into test values(2, 5, '13');
 
-select * from test where b <> 4;
-select * from test where a >=2;
+select * from test where b<>4;
+select * from test where a>=2;
 
 delete from test where a=3;
 insert into test values(3, 8, 'aaaaaa');
