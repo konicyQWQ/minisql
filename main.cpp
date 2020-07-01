@@ -11,6 +11,9 @@ using namespace std;
 
 int main()
 {
+#ifdef TIME_MEASURE
+    ios::sync_with_stdio(false);
+#endif
     cout << "Welcome to MiniSQL" << endl;
 
     Interpreter i;
