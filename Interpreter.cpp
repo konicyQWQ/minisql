@@ -38,12 +38,6 @@ void Interpreter::Pretreatment()
     query.erase(0, query.find_first_not_of(' '));
     query.erase(1 + query.find_last_not_of(' '));
 
-    if (query.substr(0, 8) == "execfile")
-    {
-        runExecFile();
-        return;
-    }
-
     /*
      * add a space before and after every sign
      * notice that we donot add a space around quotation mark
@@ -131,6 +125,14 @@ int Interpreter::runQuery()
     //op can be select, create, drop, insert, delete, execfile, quit
     //otherwise throw an invalid query exception
     string op = words[1];
+    if (op == "execfile")
+    {
+        #ifdef DEBUG
+            cout << "execfile" << endl;
+        #endif
+        runExecFile();
+        return 1;
+    }
 
     if (op == "quit")
     {
@@ -437,8 +439,8 @@ vector<WhereQuery> Interpreter::runWhere(int k)
 
 void Interpreter::runExecFile()
 {
-    string fileName = query.substr(9);
-    fileName.erase(fileName.size() - 1);
+    string fileName = words[2];
+    //fileName.erase(fileName.size() - 1);
     ifstream in(fileName);
     if (!in)
         ; //TODO: throw exception
@@ -449,6 +451,10 @@ void Interpreter::runExecFile()
         try
         {
             in >> saved;
+            #ifdef DEBUG
+                cout << "saved: " << saved << endl;
+                cout << "query: " << query << endl;
+            #endif
             query = query + saved + " ";
             if (saved.back() == ';')
             {

@@ -1,0 +1,7 @@
+create table test(
+    a int,
+    b float,
+    c char(10),
+    primary key(a)
+);
+insert into test values(1, 2, '12');
