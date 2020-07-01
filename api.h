@@ -9,12 +9,14 @@
 #include <string>
 #include <vector>
 
-class Api {
+class Api
+{
 private:
     CatalogManager *cm;
     RecordManager *rm;
     IndexManager *im;
     BufferManager *bm;
+
 public:
     Api();
     ~Api();
@@ -28,8 +30,8 @@ public:
     void dropTable(std::string tableName);
     void dropIndex(std::string indexName);
 
-    void insertInto(std::string tableName, std::vector<Data*> data);
-    Table* select(std::string tableName, std::vector<WhereQuery> wq);
+    void insertInto(std::string tableName, std::vector<Data *> data);
+    Table *select(std::string tableName, std::vector<WhereQuery> wq);
     int deleteRecord(std::string tableName, std::vector<WhereQuery> wq);
 };
 
