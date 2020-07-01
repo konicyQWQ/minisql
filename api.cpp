@@ -182,7 +182,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
                 if(table->attr[j].name == wq[i].col) {
                     flag = 1;
                     if(table->attr[j].type == 1 && wq[i].d->type == 0) {
-                        iData* ptr = (iData*)wq[i].d->type;
+                        iData* ptr = (iData*)wq[i].d;
                         wq[i].d = new fData((float)(((iData*)wq[i].d)->value));
                         delete ptr;
                     }   
@@ -288,7 +288,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
             for(int j=0; j<table->attrCnt; j++) {
                 if(table->attr[j].name == wq[i].col) {
                     if(table->attr[j].type == 1 && wq[i].d->type == 0) {
-                        iData* ptr = (iData*)wq[i].d->type;
+                        iData* ptr = (iData*)wq[i].d;
                         wq[i].d = new fData((float)(((iData*)wq[i].d)->value));
                         delete ptr;
                     } 
