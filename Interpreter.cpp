@@ -45,6 +45,14 @@ void Interpreter::Pretreatment()
      */
     for (int pos = 0; pos < query.length(); ++pos)
     {
+        //处理<=2这种情况，变成<= 2
+        if (query[pos] >= '0' && query[pos] <= '9')
+            if (query[pos - 1] == '=' || query[pos - 1] == '>' || query[pos - 1] == '<')
+            {
+                query.insert(pos, " ");
+                pos++;
+            }
+
         if (query[pos] == '<' || query[pos] == '>' || query[pos] == '=' || query[pos] == '(' || query[pos] == ')' ||
             query[pos] == ';' || query[pos] == ',' || query[pos] == '*')
         {
@@ -52,6 +60,9 @@ void Interpreter::Pretreatment()
                 (query[pos] == '>' && query[pos + 1] == '=') ||
                 (query[pos] == '<' && query[pos + 1] == '>'))
             {
+                if (query[pos - 1] != ' ')
+                    query.insert(pos, " ");
+
                 pos += 2;
                 continue;
             }
@@ -127,9 +138,9 @@ int Interpreter::runQuery()
     string op = words[1];
     if (op == "execfile")
     {
-        #ifdef DEBUG
-            cout << "execfile" << endl;
-        #endif
+#ifdef DEBUG
+        cout << "execfile" << endl;
+#endif
         runExecFile();
         return 1;
     }
@@ -153,7 +164,8 @@ int Interpreter::runQuery()
             {
                 if (words[cnt] == "primary" && words[cnt + 1] == "key")
                 {
-                    if (primaryKeyDefined) {
+                    if (primaryKeyDefined)
+                    {
                         std::logic_error e("error: primary key has been defined!");
                         throw std::exception(e);
                     }
@@ -180,7 +192,8 @@ int Interpreter::runQuery()
                 {
                     nextAttr.type = 2;
                     cnt++;
-                    if (atoi(words[cnt].c_str()) < 1 || atoi(words[cnt].c_str()) > 255) {
+                    if (atoi(words[cnt].c_str()) < 1 || atoi(words[cnt].c_str()) > 255)
+                    {
                         std::logic_error e("error: length of char is invaild!");
                         throw std::exception(e);
                     }
@@ -192,7 +205,8 @@ int Interpreter::runQuery()
                     throw std::exception(e);
                 }
                 cnt++;
-                if (words[cnt] == "unique") {
+                if (words[cnt] == "unique")
+                {
                     nextAttr.isUnique = true;
                     cnt++;
                 }
@@ -213,7 +227,8 @@ int Interpreter::runQuery()
         }
         else if (obj == "index")
         {
-            if (words[4] != "on") {
+            if (words[4] != "on")
+            {
                 std::logic_error e("error: create index syntax error!");
                 throw exception(e);
             }
@@ -312,7 +327,8 @@ int Interpreter::runQuery()
     }
     else if (op == "insert")
     {
-        if (words[2] != "into" || words[4] != "values") {
+        if (words[2] != "into" || words[4] != "values")
+        {
             std::logic_error e("error: insert syntax error!");
             throw exception(e);
         }
@@ -449,14 +465,16 @@ void Interpreter::runExecFile()
         {
             in >> saved;
             query = query + saved + " ";
-            while(saved.back() == '\n' || saved.back() == ' ' || saved.back() == '\t' || saved.back() == '\r')
+            while (saved.back() == '\n' || saved.back() == ' ' || saved.back() == '\t' || saved.back() == '\r')
                 saved.erase(saved.length() - 1);
             if (saved.back() == ';')
             {
                 Pretreatment();
                 setWords();
                 try
-                { runQuery(); }
+                {
+                    runQuery();
+                }
                 catch (exception &e)
                 {
                     cout << "MiniSQL: " << e.what() << endl;
