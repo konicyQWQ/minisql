@@ -113,10 +113,10 @@ void Api::dropTable(std::string tableName) {
         std::logic_error e("error: table is not exist!");
         throw std::exception(e);
     } else {
-        cm->dropTable(tableName);
-        rm->dropTabel(tableName);
         for(int i=0; i<table->indexCnt; i++)
             im->deleteIndex(table->index[i].name);
+        cm->dropTable(tableName);
+        rm->dropTabel(tableName);
     }
     delete table;
 }
@@ -189,7 +189,7 @@ Table* Api::select(std::string tableName, std::vector<WhereQuery> wq) {
 
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
-                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0))) {
+                    || (table->attr[j].type >= 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0))) {
                         std::logic_error e("error: values are not proper for attribute!");
                         throw std::exception(e);
                     }
@@ -296,7 +296,7 @@ int Api::deleteRecord(std::string tableName, std::vector<WhereQuery> wq) {
                     flag = 1;
                     if((table->attr[j].type == 0 && wq[i].d->type != 0)
                     || (table->attr[j].type == 1 && (wq[i].d->type != 1 && wq[i].d->type != 0))
-                    || (table->attr[j].type == 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0))) {
+                    || (table->attr[j].type >= 2 && (wq[i].d->type - 2 > table->attr[j].length  || wq[i].d->type - 2 < 0))) {
                         std::logic_error e("error: values are not proper for attribute!");
                         throw std::exception(e);
                     }
