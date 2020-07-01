@@ -192,10 +192,6 @@ int Interpreter::runQuery()
                     throw std::exception(e);
                 }
                 cnt++;
-                #ifdef DEBUG
-                    if(cnt < words.size())
-                        cout << "words[cnt] = " << words[cnt] << endl;
-                #endif
                 if (words[cnt] == "unique") {
                     nextAttr.isUnique = true;
                     cnt++;
@@ -453,16 +449,19 @@ void Interpreter::runExecFile()
         {
             in >> saved;
             query = query + saved + " ";
-            #ifdef DEBUG
-                cout << "saved: " << saved << endl;
-                cout << "query: " << query << endl;
-            #endif
+            while(saved.back() == '\n' || saved.back() == ' ' || saved.back() == '\t' || saved.back() == '\r')
+                saved.erase(saved.length() - 1);
             if (saved.back() == ';')
             {
                 Pretreatment();
                 setWords();
-                runQuery();
-                query = "";
+                try
+                { runQuery(); }
+                catch (exception &e)
+                {
+                    cout << "MiniSQL: " << e.what() << endl;
+                }
+                query.clear();
             }
         }
         catch (exception e)
