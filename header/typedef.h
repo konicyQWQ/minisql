@@ -6,12 +6,13 @@
 #include <vector>
 
 //#define DEBUG
-#define OPEN_INDEX
+//#define OPENINDEX
 
 typedef unsigned char byte;
 
 /* 缓冲区块的定义 */
-struct Block {
+struct Block
+{
     char buf[4096];
     std::string filename;
     int time, offset, validChar;
@@ -21,7 +22,7 @@ struct Block {
 class Data
 {
 public:
-    int type;//0:int;1:float;otherwise vchar
+    int type; //0:int;1:float;otherwise vchar
 };
 
 class iData : public Data
@@ -53,7 +54,7 @@ public:
 
     explicit sData(std::string x) : Data(), value(std::move(x))
     {
-        type = x.length() + 2;//为了防止和0 1冲突
+        type = x.length() + 2; //为了防止和0 1冲突
     }
 };
 
@@ -64,25 +65,23 @@ public:
     int address;
     explicit Tuple(std::vector<Data *> d) : data(std::move(d))
     {
-
     }
 };
-
 
 /* 属性 */
 struct Attribute
 {
-    std::string name;   // 属性名(不超过80个字符)
-    byte type, length;  // 类型：type=0 表示 int，type=1 表示 float，type=2 表示 char（length为char的长度）
-    bool isUnique;      // 是否是唯一的
-    bool notNULL;       // 是否不能为空
+    std::string name;  // 属性名(不超过80个字符)
+    byte type, length; // 类型：type=0 表示 int，type=1 表示 float，type=2 表示 char（length为char的长度）
+    bool isUnique;     // 是否是唯一的
+    bool notNULL;      // 是否不能为空
 };
 
 /* 索引 */
 struct Index
 {
-    std::string name;  // 索引名(不超过80个字符)
-    byte indexNum;     // 索引在第几个属性上，Index和它所在的表有关，不能与表分开使用
+    std::string name; // 索引名(不超过80个字符)
+    byte indexNum;    // 索引在第几个属性上，Index和它所在的表有关，不能与表分开使用
 };
 
 /* 表 */
@@ -100,7 +99,12 @@ public:
 
 typedef enum
 {
-    e, ne, gt, lt, ge, le
+    e,
+    ne,
+    gt,
+    lt,
+    ge,
+    le
 } COMPARE;
 
 struct WhereQuery
@@ -110,6 +114,6 @@ struct WhereQuery
     }
     std::string col;
     COMPARE op;
-    Data* d;
+    Data *d;
 };
 #endif //MINISQL_TYPEDEF_H
