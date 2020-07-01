@@ -67,8 +67,6 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                     #ifdef DEBUG
                         cout << "type = " << (int)table->attr[i].type << endl;
                     #endif
-                    if(table->attr[i].isUnique == false)
-                        continue;
 
                     if(table->attr[i].type == 0) {
                         if(table->attr[i].isUnique) {
@@ -103,8 +101,8 @@ int RecordManager::insert(Table *table, Tuple tuple) {
                                 std::logic_error e((string("error: insert failed beacuse of the unique attribute ") + table->attr[i].name).c_str());
                                 throw std::exception(e);
                             }
-                            /*
-                            string str;
+                            
+                            /*string str;
                             for(int i=0; i<table->attr[i].length; i++)
                                 if(value[i])
                                     str += value[i];
