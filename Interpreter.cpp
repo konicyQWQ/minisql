@@ -282,7 +282,9 @@ int Interpreter::runQuery()
             }
 #endif
             Table *tb = api->select(tableName, wq);
+#ifndef NO_SELECT_OUTPUT
             api->showTuple(tb);
+#endif
             delete tb;
         }
         catch (const std::exception &e)
@@ -356,7 +358,9 @@ int Interpreter::runQuery()
             cout << "insert function: data.size() = " << data.size() << endl;
 #endif
             api->insertInto(tableName, data);
+#ifndef NO_OUTPUT
             cout << "MiniSQL: insert successfully!" << endl;
+#endif
         }
         catch (const std::exception &e)
         {

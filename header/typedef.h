@@ -7,7 +7,9 @@
 
 //#define DEBUG
 //#define OPENINDEX
-
+#define NO_OUTPUT
+//#define NO_SELECT_OUTPUT
+#define TIME_MEASURE
 typedef unsigned char byte;
 
 /* 缓冲区块的定义 */
